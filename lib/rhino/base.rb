@@ -235,6 +235,20 @@ module Rhino
         }
       end
       
+      # Specifying that a model <tt>has_many :links</tt> overwrites the Model#links method to
+      # return a proxied array of columns underneath the <tt>links:</tt> column family.
+      def has_many(column_family_name, cf_class=Rhino::PromotedColumnFamily)
+        column_family_name = column_family_name.to_s.gsub(':','')
+        define_method(column_family_name) do
+          cf_class.connect(self, send("#{column_family_name}_family"))
+        end
+        # class_eval %Q{
+        #           def #{column_family_name}
+        #             @#{column_family_name} ||= Rhino::ColumnFamilyProxy.new(self, #{column_family_name}_family)
+        #           end
+        #         }
+      end
+      
       def is_valid_column_name?(column_name)
         debug("Rhino::Base.is_valid_column_name?(#{column_name.inspect})")
         return false if column_name.nil? or column_name == ""

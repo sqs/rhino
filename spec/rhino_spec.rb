@@ -30,6 +30,22 @@ describe Rhino::Base do
     end
   end
 
+  describe "when reading existing rows from HBase" do
+    before do
+      @key = 'some.example.com'
+      @page_data = {'title:'=>'hello', 'contents:'=>'hi there', 'meta:author'=>'Alice'}
+      Page.create(@key, @page_data)
+      @page = Page.find(@key)
+    end
+    
+    it "should have a data hash equivalent to that with which it was created" do
+      @page.data.should == @page_data
+    end
+      
+    after do
+      Page.find(@key).destroy
+    end
+  end
 
   describe "when testing the validity of column names" do
     it "should reject columns that aren't in a defined column family" do
@@ -206,5 +222,42 @@ describe Rhino::Base do
 
   describe "when retrieving only certain columns" do
     it "should retrieve only the requested columns"
+  end
+end
+
+describe Rhino::PromotedColumnFamily do
+  describe "when working with a has_many relationship" do
+    before do
+      @key = 'hasmany.example.com'
+      @page = Page.create(@key, {:title=>'Has Many Example', 'links:com.example.an/path'=>'Click now',
+                                 'links:com.google.www/search'=>'Search engine'})
+    end
+    
+    after do
+      Page.find(@key).destroy
+    end
+  
+    it "should return a list of objects that it has_many of" do
+      @page.links.keys.sort.should == %w(com.example.an/path com.google.www/search)
+    end
+    
+    it "should allow retrieval by key" do
+      @page.links['com.example.an/path'].contents.should == 'Click now'
+      @page.links['com.google.www/search'].key.should == 'com.google.www/search' 
+    end
+    
+    describe "when subclassing PromotedColumnFamily" do
+      it { @page.links['com.example.an/path'].class.should == Link }
+      
+      it "should allow custom methods to be defined on the subclass" do
+        @page.links['com.example.an/path'].url.should == 'http://an.example.com/path'
+      end
+    end
+  
+    it "should allow adding to the list of objects"
+    
+    it "should allow deletion from the list of objects"
+    
+    it "should allow retrieval of all of the column names"
   end
 end
