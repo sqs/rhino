@@ -1,30 +1,33 @@
-= Rhino - a Ruby ORM for Hbase
+= Rhino - a Ruby ORM for HBase
 
-Rhino is an object-relational mapping for Ruby and Hbase[http://wiki.apache.org/lucene-hadoop/Hbase].
+Rhino is an object-relational mapping for Ruby and HBase[http://wiki.apache.org/lucene-hadoop/HBase].
 
 == Getting started
 
-=== Connect to Hbase
+=== Connect to HBase
 
-Establish a connection to the {REST API endpoint URL}[http://wiki.apache.org/lucene-hadoop/Hbase/HbaseRest] of your Hbase installation:
+Establish a connection to the {REST API endpoint URL}[http://wiki.apache.org/lucene-hadoop/HBase/HBaseRest] of your HBase installation:
   
   Rhino::Base.connect("http://localhost:60010/api")
   
 === Describe your table
 
 A class definition like:
-  
+
   class Page < Rhino::Base
     column_family :title
     column_family :contents
-    column_family :text
-    column_family :meta
+    column_family :links
+    column_family :meta#, :columns=>%w(keywords author encoding mime language)
   end
+
+...is mapped to the following HBase table (described in {HBase Query Language}[http://wiki.apache.org/lucene-hadoop/HBase/HBaseShell]
+
+  CREATE TABLE pages(title:, contents:, links:, meta:);
   
-...is mapped to the following Hbase table (described in {Hbase Query Language}[http://wiki.apache.org/lucene-hadoop/Hbase/HbaseShell]
-and taken from {Jim Kellerman's presentation}[http://wiki.apache.org/lucene-hadoop-data/attachments/HBase(2f)HBasePresentations/attachments/HBase.pdf]):
+Or, in version 0.2's JRuby shell language:
   
-  CREATE TABLE posts(title:, contents:, text:, meta:);
+  create 'pages', 'title', 'contents', 'links', 'meta'
   
 === Work with the data
 
