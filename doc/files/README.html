@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>File: README</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Script-Type" content="text/javascript" />
+  <link rel="stylesheet" href=".././rdoc-style.css" type="text/css" media="screen" />
+  <script type="text/javascript">
+  // <![CDATA[
+
+  function popupCode( url ) {
+    window.open(url, "Code", "resizable=yes,scrollbars=yes,toolbar=no,status=no,height=150,width=400")
+  }
+
+  function toggleCode( id ) {
+    if ( document.getElementById )
+      elem = document.getElementById( id );
+    else if ( document.all )
+      elem = eval( "document.all." + id );
+    else
+      return false;
+
+    elemStyle = elem.style;
+    
+    if ( elemStyle.display != "block" ) {
+      elemStyle.display = "block"
+    } else {
+      elemStyle.display = "none"
+    }
+
+    return true;
+  }
+  
+  // Make codeblocks hidden by default
+  document.writeln( "<style type=\"text/css\">div.method-source-code { display: none }</style>" )
+  
+  // ]]>
+  </script>
+
+</head>
+<body>
+
+
+
+  <div id="fileHeader">
+    <h1>README</h1>
+    <table class="header-table">
+    <tr class="top-aligned-row">
+      <td><strong>Path:</strong></td>
+      <td>README
+      </td>
+    </tr>
+    <tr class="top-aligned-row">
+      <td><strong>Last Update:</strong></td>
+      <td>Sun Jan 06 16:24:01 -0800 2008</td>
+    </tr>
+    </table>
+  </div>
+  <!-- banner header -->
+
+  <div id="bodyContent">
+
+
+
+  <div id="contextContent">
+
+    <div id="description">
+      <h1>Rhino - a Ruby ORM for Hbase</h1>
+<p>
+Rhino is an object-relational mapping for Ruby and <a
+href="http://wiki.apache.org/lucene-hadoop/Hbase">Hbase</a>.
+</p>
+<h2>Getting started</h2>
+<h3>Connect to Hbase</h3>
+<p>
+Establish a connection to the <a
+href="http://wiki.apache.org/lucene-hadoop/Hbase/HbaseRest">REST API
+endpoint URL</a> of your Hbase installation:
+</p>
+<pre>
+  Rhino::Base.connect(&quot;http://localhost:60010/api&quot;)
+</pre>
+<h3>Describe your table</h3>
+<p>
+A class definition like:
+</p>
+<pre>
+  class Page &lt; Rhino::Base
+    column_family :title
+    column_family :contents
+    column_family :text
+    column_family :meta
+  end
+</pre>
+<p>
+&#8230;is mapped to the following Hbase table (described in <a
+href="http://wiki.apache.org/lucene-hadoop/Hbase/HbaseShell">Hbase Query
+Language</a> and taken from <a
+href="http://wiki.apache.org/lucene-hadoop-data/attachments/HBase(2f)HBasePresentations/attachments/HBase.pdf">Jim
+Kellerman's presentation</a>):
+</p>
+<pre>
+  CREATE TABLE posts(title:, contents:, text:, meta:);
+</pre>
+<h3>Work with the data</h3>
+<h4>Finding records</h4>
+<pre>
+  # right now, you can only find by a key
+  page = Page.find('some-key')
+</pre>
+<h4>Creating new records</h4>
+<pre>
+  # data can be specified in the second argument of Page.new...
+  page = Page.new('the-row-key', {:title=&gt;&quot;my title&quot;})
+  # ...or as attributes on the model
+  page.contents = &quot;&lt;p&gt;welcome&lt;/p&gt;&quot;
+  puts &quot;page is a new record before save&quot; if page.new_record?
+  page.save
+  puts &quot;after save, page is not a new record&quot; if !page.new_record?
+</pre>
+<h4>Reading and updating attributes</h4>
+<pre>
+  # basic
+  page = Page.find('some-key')
+  puts &quot;the old title is: #{page.title}&quot;
+  page.title = &quot;another title&quot;
+  page.save
+  puts &quot;the new title is: #{page.title}&quot;
+
+  # you can also read from and write to specific columns in a column family -
+  # here, meta: is a column family, and we're going to write to meta:author
+  page = Page.find('some-key')
+  # since we defined the meta: column family in our class definition, Rhino
+  # knows we mean meta:author
+  page.meta_author = &quot;John Doe&quot;
+  page.save
+  puts &quot;the author is: #{page.meta_author}&quot;
+</pre>
+<h4>Introspecting column families</h4>
+<pre>
+  page = Page.new('yahoo.com', :title=&gt;'Yahoo!', :meta_author=&gt;'yang', :meta_language=&gt;'en-US', :meta_charset=&gt;'UTF-8')
+  puts &quot;meta columns are:&quot;
+  page.meta_column_full_names.each do |colname|
+    puts &quot; - #{colname} = #{page.send(colname)}&quot;
+  end
+</pre>
+<h4>Setting timestamps and retrieving by timestamp</h4>
+<pre>
+  a_week_ago = Time.now - 7 * 24 * 3600
+  a_month_ago = Time.now - 30 * 24 * 3600
+
+  newer_page = Page.create('google.com', {:title=&gt;'newer google'}, {:timestamp=&gt;a_week_ago})
+  older_page = Page.create('google.com', {:title=&gt;'older google'}, {:timestamp=&gt;a_month_ago})
+
+  # now you can find() by the timestamps you just set
+  Page.find('google.com', :timestamp=&gt;a_week_ago).title # =&gt; &quot;newer google&quot;
+  Page.find('google.com', :timestamp=&gt;a_month_ago).title # =&gt; &quot;older google&quot;
+
+  # and if you just find() normally, you will get the most recent Page
+  Page.find('google.com').title # =&gt; &quot;newer google&quot;
+</pre>
+
+    </div>
+
+
+   </div>
+
+
+  </div>
+
+
+    <!-- if includes -->
+
+    <div id="section">
+
+
+
+
+
+      
+
+
+    <!-- if method_list -->
+
+
+  </div>
+
+
+<div id="validator-badges">
+  <p><small><a href="http://validator.w3.org/check/referer">[Validate]</a></small></p>
+</div>
+
+</body>
+</html>

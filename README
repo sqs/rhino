@@ -1,0 +1,85 @@
+= Rhino - a Ruby ORM for Hbase
+
+Rhino is an object-relational mapping for Ruby and Hbase[http://wiki.apache.org/lucene-hadoop/Hbase].
+
+== Getting started
+
+=== Connect to Hbase
+
+Establish a connection to the {REST API endpoint URL}[http://wiki.apache.org/lucene-hadoop/Hbase/HbaseRest] of your Hbase installation:
+  
+  Rhino::Base.connect("http://localhost:60010/api")
+  
+=== Describe your table
+
+A class definition like:
+  
+  class Page < Rhino::Base
+    column_family :title
+    column_family :contents
+    column_family :text
+    column_family :meta
+  end
+  
+...is mapped to the following Hbase table (described in {Hbase Query Language}[http://wiki.apache.org/lucene-hadoop/Hbase/HbaseShell]
+and taken from {Jim Kellerman's presentation}[http://wiki.apache.org/lucene-hadoop-data/attachments/HBase(2f)HBasePresentations/attachments/HBase.pdf]):
+  
+  CREATE TABLE posts(title:, contents:, text:, meta:);
+  
+=== Work with the data
+
+==== Finding records
+
+  # right now, you can only find by a key
+  page = Page.find('some-key')
+  
+==== Creating new records
+
+  # data can be specified in the second argument of Page.new...
+  page = Page.new('the-row-key', {:title=>"my title"})
+  # ...or as attributes on the model
+  page.contents = "<p>welcome</p>"
+  puts "page is a new record before save" if page.new_record?
+  page.save
+  puts "after save, page is not a new record" if !page.new_record?
+
+==== Reading and updating attributes
+
+  # basic
+  page = Page.find('some-key')
+  puts "the old title is: #{page.title}"
+  page.title = "another title"
+  page.save
+  puts "the new title is: #{page.title}"
+
+  # you can also read from and write to specific columns in a column family -
+  # here, meta: is a column family, and we're going to write to meta:author
+  page = Page.find('some-key')
+  # since we defined the meta: column family in our class definition, Rhino
+  # knows we mean meta:author
+  page.meta_author = "John Doe"
+  page.save
+  puts "the author is: #{page.meta_author}"
+  
+==== Introspecting column families
+  
+  page = Page.new('yahoo.com', :title=>'Yahoo!', :meta_author=>'yang', :meta_language=>'en-US', :meta_charset=>'UTF-8')
+  puts "meta columns are:"
+  page.meta_column_full_names.each do |colname|
+    puts " - #{colname} = #{page.send(colname)}"
+  end
+
+==== Setting timestamps and retrieving by timestamp
+  
+  a_week_ago = Time.now - 7 * 24 * 3600
+  a_month_ago = Time.now - 30 * 24 * 3600
+  
+  newer_page = Page.create('google.com', {:title=>'newer google'}, {:timestamp=>a_week_ago})
+  older_page = Page.create('google.com', {:title=>'older google'}, {:timestamp=>a_month_ago})
+  
+  # now you can find() by the timestamps you just set
+  Page.find('google.com', :timestamp=>a_week_ago).title # => "newer google"
+  Page.find('google.com', :timestamp=>a_month_ago).title # => "older google"
+  
+  # and if you just find() normally, you will get the most recent Page
+  Page.find('google.com').title # => "newer google"
