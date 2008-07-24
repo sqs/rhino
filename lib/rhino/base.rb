@@ -4,7 +4,7 @@ module Rhino
   #   class Page < Rhino::Base
   #     column_family :title
   #     column_family :contents
-  #     column_family :text
+  #     column_family :links
   #     column_family :meta
   #   end
   #
