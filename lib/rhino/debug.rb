@@ -8,5 +8,5 @@ module Rhino
 end
 
 def debug(str)
-  puts "DEBUG: #{str}"
+  puts "\e[33mDEBUG: #{str}\e[0m"
 end
