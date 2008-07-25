@@ -2,8 +2,6 @@ module Rhino
   module Constraints
     module ClassMethods
         def self.extended(base)
-        debug("EXTENDED #{base.inspect}")
-        #base.instance_variable_set("@constraints", {})
         @@constraints = {}
       end
     
