@@ -20,7 +20,7 @@ module Rhino
       @column_family.column_names
     end
     
-    def self.[](idx)
+    def self.find(idx)
       if idx.match(/^\d+$/)
         raise "unimplemented"
       else
@@ -36,6 +36,12 @@ module Rhino
     def self.belongs_to(containing_class_name)
       debug("#{self.class.name} belongs_to #{containing_class_name}")
       instance_eval { alias_method containing_class_name, :row }
+    end
+    
+    def self.each
+      keys.each do |key|
+        yield(find(key))
+      end
     end
     
     attr_accessor :key, :contents

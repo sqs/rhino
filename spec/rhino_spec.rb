@@ -262,31 +262,39 @@ describe Rhino::PromotedColumnFamily do
     end
     
     it "should allow retrieval by key" do
-      @page.links['com.example.an/path'].contents.should == 'Click now'
-      @page.links['com.google.www/search'].key.should == 'com.google.www/search' 
+      @page.links.find('com.example.an/path').contents.should == 'Click now'
+      @page.links.find('com.google.www/search').key.should == 'com.google.www/search' 
+    end
+    
+    describe "when looping over the collection" do
+      it "should return each object" do
+        link_keys = []
+        @page.links.each { |link| link_keys << link.key }
+        link_keys.sort.should == %w(com.example.an/path com.google.www/search)
+      end
     end
     
     it "should respect key changes propagated by the contained model" do
       pending
-      @page.links['com.google.www/search'].key = 'com.google.www/another/path'
+      @page.links.find('com.google.www/search').key = 'com.google.www/another/path'
       @page.save
       Page.find(@key).links.keys.include?('com.google.www/another/path').should be_true
     end
     
     describe "when subclassing PromotedColumnFamily" do
-      it { @page.links['com.example.an/path'].class.should == Link }
+      it { @page.links.find('com.example.an/path').class.should == Link }
       
       it "should allow custom methods to be defined on the subclass" do
-        @page.links['com.example.an/path'].url.should == 'http://an.example.com/path'
+        @page.links.find('com.example.an/path').url.should == 'http://an.example.com/path'
       end
     end
     
     it "should allow retrieval of the containing model by the name specified in belongs_to" do
-      @page.links['com.example.an/path'].page.should == @page
+      @page.links.find('com.example.an/path').page.should == @page
     end
     
     it "should allow retrieval of the containing model by the generic accessor #row" do
-      @page.links['com.example.an/path'].row.should == @page
+      @page.links.find('com.example.an/path').row.should == @page
     end
   
     it "should allow adding to the list of objects"
