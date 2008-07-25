@@ -126,6 +126,22 @@ module Rhino
       @data[attr_name]
     end
     
+    # If <tt>attr_name</tt> is a column family, nulls out the value. If <tt>attr_name</tt> is a column, removes the column from the row.
+    def delete_attribute(attr_name)
+      debug("Rhino::Base#delete_attribute(#{attr_name.inspect})")
+      attr_name = self.class.dealias(attr_name)
+      # TODO: this has problems if the column name has a : in it other than between c.f. and column name
+      is_column_family = !attr_name[0..-2].include?(':')
+      if is_column_family
+        set_attribute(attr_name, nil)
+      else
+        # TODO: this only sets it to nil, it doesn't actually remove the column. that's because I need to find a way to signal
+        # that the column should be removed, but @data.delete(attr_name) will also mean that #save doesn't update it, since
+        # it isn't in @data.keys.
+        set_attribute(attr_name, nil)
+      end
+    end
+    
     def columns
       @data.keys
     end
@@ -179,7 +195,7 @@ module Rhino
           get_attribute(attr_name)
         end
       else
-        super()
+        raise ArgumentError, "method_missing(#{method.inspect}, #{args.inspect})"
       end
     end
     

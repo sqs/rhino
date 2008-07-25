@@ -76,6 +76,10 @@ describe Rhino::Base do
       @page_data = {:contents=>@page_contents, :title=>@page_title}
       @page = Page.create(@page_key, @page_data)
     end
+    
+    after do
+      Page.find(@page_key).destroy
+    end
   
     it "should make its attributes accessible as methods" do
       @page.title.should == @page_title
@@ -85,6 +89,18 @@ describe Rhino::Base do
     it "should make its attributes writable" do
       @page.title = "man bites dog"
       @page.title.should == "man bites dog"
+    end
+    
+    it "should null column family values when they are deleted" do
+      @page.delete_attribute('contents:')
+      @page.contents.should == nil
+    end
+    
+    it "should remove columns entirely when they are deleted" do
+      @page.meta_author = 'John'
+      @page.delete_attribute('meta:author')
+      # TODO: this only tests whether the value is nil, should test for existence of column
+      @page.meta_author.should == nil
     end
   
     it "should set attributes that are in column families correctly" do
@@ -265,7 +281,7 @@ describe Rhino::PromotedColumnFamily do
       @page.links.find('com.example.an/path').contents.should == 'Click now'
       @page.links.find('com.google.www/search').key.should == 'com.google.www/search' 
     end
-    
+        
     describe "when looping over the collection" do
       it "should return each object" do
         link_keys = []
@@ -274,11 +290,42 @@ describe Rhino::PromotedColumnFamily do
       end
     end
     
-    it "should respect key changes propagated by the contained model" do
+    describe "when changing attributes" do
+      def change_the_key
+        @page.links.find('com.google.www/search').key = 'com.google.www/another/path'
+        @page.save
+        @reloaded_page_link_keys = Page.find(@key).links.keys
+      end
+    
+      it "should save key changes propagated by the contained model" do
+        change_the_key
+        @reloaded_page_link_keys.include?('com.google.www/another/path').should == true
+      end
+      
+      it "should remove the old column when changing the key" do
+        pending
+        change_the_key
+        @reloaded_page_link_keys.include?('com.google.www/search').should == false
+      end
+    
+      it "should save contents changes propagated by the contained model" do
+        goog_link = @page.links.find('com.google.www/search')
+        goog_link.contents = 'Google'
+        goog_link.save
+        Page.find(@key).links.find('com.google.www/search').contents.should == 'Google'
+      end
+    end
+    
+    
+    it "should not be a new record after it has been saved" do
       pending
-      @page.links.find('com.google.www/search').key = 'com.google.www/another/path'
-      @page.save
-      Page.find(@key).links.keys.include?('com.google.www/another/path').should be_true
+      @page.links.find('com.google.www/search').new_record?.should == false
+    end
+    
+    it "should be a new record before it has been saved" do
+      pending
+      @page.set_attribute('links:com.apple', 'New link')
+      @page.links.find('com.apple').new_record?.should == true
     end
     
     describe "when subclassing PromotedColumnFamily" do
@@ -338,7 +385,5 @@ describe Rhino::PromotedColumnFamily do
       @page.meta_author.should == 'Bob'
       @page.author.should == 'Bob'
     end
-    
-    
   end
 end
