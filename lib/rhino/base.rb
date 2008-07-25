@@ -247,11 +247,6 @@ module Rhino
         define_method(column_family_name) do
           cf_class.connect(self, send("#{column_family_name}_family"))
         end
-        # class_eval %Q{
-        #           def #{column_family_name}
-        #             @#{column_family_name} ||= Rhino::ColumnFamilyProxy.new(self, #{column_family_name}_family)
-        #           end
-        #         }
       end
       
       def is_valid_column_name?(column_name)
