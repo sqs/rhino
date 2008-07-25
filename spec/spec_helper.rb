@@ -25,6 +25,8 @@ class Page < Rhino::Base
   column_family :meta
   
   has_many :links, Link
+  
+  constraint(:title_required) { |page| page.title and !page.title.empty? }
 end
 
 page_key = 'example.com'

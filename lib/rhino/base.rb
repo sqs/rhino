@@ -68,6 +68,9 @@ module Rhino
   #   page.meta_author # returns value of meta:author column
   #   page.meta_language = 'en-US' # sets value of meta:language column
   class Base
+    extend Rhino::Constraints::ClassMethods
+    include Rhino::Constraints::InstanceMethods
+    
     def initialize(key, data={}, metadata={}, opts={})
       debug("Rhino::Base#initialize(#{key.inspect}, #{data.inspect}, #{metadata.inspect}, #{opts.inspect})")
       self.timestamp = metadata.delete(:timestamp)
@@ -82,12 +85,14 @@ module Rhino
     
     def save
       debug("Rhino::Base#save() [key=#{key.inspect}, data=#{data.inspect}, timestamp=#{timestamp.inspect}]")
+      check_constraints()
       put_return_val = self.class.connection.put(key, data, timestamp)
       raise "put failed" unless put_return_val
       if new_record?
         @opts[:new_record] = false
         @opts[:was_new_record] = true
       end
+      return true
     end
     
     def destroy
@@ -136,7 +141,7 @@ module Rhino
       @key = a_key
     end
     
-    # Data that is set here must have HBase-style keys, not underscored keys.
+    # Data that is set here must have HBase-style keys (like {'meta:author'=>'John'}), not underscored keys {:meta_author=>'John'}.
     def data=(some_data)
       debug("Rhino::Base#data=(#{some_data.inspect})")
       @data = {}
