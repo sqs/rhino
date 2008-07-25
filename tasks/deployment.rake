@@ -2,7 +2,7 @@ require 'rake/rdoctask'
 
 Rake::RDocTask.new { |rdoc|
   rdoc.rdoc_dir = 'doc'
-  rdoc.title    = "Rhino - Ruby Hbase ORM"
+  rdoc.title    = "Rhino - Ruby HBase ORM"
   rdoc.options << '--line-numbers' << '--inline-source' << '-A cattr_accessor=object'
   rdoc.options << '--charset' << 'utf-8'
   rdoc.template = "#{ENV['template']}.rb" if ENV['template']
