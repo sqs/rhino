@@ -253,6 +253,14 @@ describe Rhino::PromotedColumnFamily do
         @page.links['com.example.an/path'].url.should == 'http://an.example.com/path'
       end
     end
+    
+    it "should allow retrieval of the containing model by the name specified in belongs_to" do
+      @page.links['com.example.an/path'].page.should == @page
+    end
+    
+    it "should allow retrieval of the containing model by the generic accessor #row" do
+      @page.links['com.example.an/path'].row.should == @page
+    end
   
     it "should allow adding to the list of objects"
     

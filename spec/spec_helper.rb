@@ -7,6 +7,8 @@ include Rhino::Debug
 Rhino::Base.connect("http://localhost:60010/api")
 
 class Link < Rhino::PromotedColumnFamily
+  belongs_to :page
+  
   def url
     url_parts = key.split('/')
     backwards_host = url_parts.shift
