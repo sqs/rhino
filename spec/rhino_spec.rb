@@ -47,24 +47,24 @@ describe Rhino::Base do
     end
   end
 
-  describe "when testing the validity of column names" do
+  describe "when testing the validity of attribute names" do
     it "should reject columns that aren't in a defined column family" do
-      Page.is_valid_column_name?("addresses:home").should == false
+      Page.is_valid_attr_name?("addresses:home").should == false
     end
   
-    it "should reject blank column names" do
-      Page.is_valid_column_name?("").should == false
-      Page.is_valid_column_name?(nil).should == false
+    it "should reject blank attribute names" do
+      Page.is_valid_attr_name?("").should == false
+      Page.is_valid_attr_name?(nil).should == false
     end
   
     it "should approve column families" do
-      Page.is_valid_column_name?("meta:").should == true
-      Page.is_valid_column_name?("title:").should == true
+      Page.is_valid_attr_name?("meta:").should == true
+      Page.is_valid_attr_name?("title:").should == true
     end
   
     it "should approve columns underneath existing column families" do
-      Page.is_valid_column_name?("meta:author").should == true
-      Page.is_valid_column_name?("title:asdf").should == true
+      Page.is_valid_attr_name?("meta:author").should == true
+      Page.is_valid_attr_name?("title:asdf").should == true
     end
   end
 
@@ -77,17 +77,17 @@ describe Rhino::Base do
       @page = Page.create(@page_key, @page_data)
     end
   
-    it "should make its columns accessible as methods" do
+    it "should make its attributes accessible as methods" do
       @page.title.should == @page_title
       @page.contents.should == @page_contents
     end
   
-    it "should make its columns writable" do
+    it "should make its attributes writable" do
       @page.title = "man bites dog"
       @page.title.should == "man bites dog"
     end
   
-    it "should set columns that are namespaced into column families correctly" do
+    it "should set attributes that are in column families correctly" do
       author = "John Smith"
       @page.meta_author = author
       @page.meta_author.should == author
@@ -194,7 +194,7 @@ describe Rhino::Base do
     end
   
     it "should structure columns properly even before saving them to the db" do
-    
+      pending
     end
   
     it "should present a ColumnFamily object" do
@@ -299,7 +299,7 @@ describe Rhino::PromotedColumnFamily do
   describe "when using constraints" do
     before do
       blank_title = ""
-      @page = Page.new('somepage', {:title=>blank_title, :contents=>"hello"})
+      @page = Page.new('some-page', {:title=>blank_title, :contents=>"hello"})
     end
     
     it "should not save objects that violate constraints" do
@@ -310,5 +310,27 @@ describe Rhino::PromotedColumnFamily do
       @page.title = "any title will do"
       lambda { @page.save }.should_not raise_error(Rhino::ConstraintViolation)
     end
+  end
+  
+  describe "when using attribute aliases" do
+    it "should read the value of the target" do
+      @page = Page.new('some-page')
+      @page.meta_author = 'Alice'
+      @page.author.should == 'Alice'
+    end
+    
+    it "should set the value of the target" do
+      @page = Page.new('some-page')
+      @page.author = 'Cindy'
+      @page.meta_author.should == 'Cindy'
+    end
+    
+    it "should allow instantiation using attribute aliases" do
+      @page = Page.create('some-page', :author=>'Bob', :title=>'a title')
+      @page.meta_author.should == 'Bob'
+      @page.author.should == 'Bob'
+    end
+    
+    
   end
 end

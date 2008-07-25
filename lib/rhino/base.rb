@@ -71,6 +71,8 @@ module Rhino
     extend Rhino::Constraints::ClassMethods
     include Rhino::Constraints::InstanceMethods
     
+    extend Rhino::Aliases::ClassMethods
+    
     def initialize(key, data={}, metadata={}, opts={})
       debug("Rhino::Base#initialize(#{key.inspect}, #{data.inspect}, #{metadata.inspect}, #{opts.inspect})")
       self.timestamp = metadata.delete(:timestamp)
@@ -112,14 +114,16 @@ module Rhino
       @opts[:new_record]
     end
     
-    def set_attribute(column_name, value)
-      debug("Rhino::Base#set_attribute(#{column_name.inspect}, #{value.inspect})")
-      @data[column_name] = value
+    def set_attribute(attr_name, value)
+      debug("Rhino::Base#set_attribute(#{attr_name.inspect}, #{value.inspect})")
+      attr_name = self.class.dealias(attr_name)
+      @data[attr_name] = value
     end
     
-    def get_attribute(column_name)
-      debug("Rhino::Base#get_attribute(#{column_name.inspect}) => #{data[column_name].inspect}")
-      @data[column_name]
+    def get_attribute(attr_name)
+      debug("Rhino::Base#get_attribute(#{attr_name.inspect}) => #{data[attr_name].inspect}")
+      attr_name = self.class.dealias(attr_name)
+      @data[attr_name]
     end
     
     def columns
@@ -145,44 +149,45 @@ module Rhino
     def data=(some_data)
       debug("Rhino::Base#data=(#{some_data.inspect})")
       @data = {}
-      some_data.each do |column_name,val|
-        column_name = underscore_name_to_column_name(column_name)
-        raise "invalid column name for (#{column_name.inspect},#{val.inspect})" unless self.class.is_valid_column_name?(column_name)
-        set_attribute(column_name, val)
+      some_data.each do |attr_name,val|
+        attr_name = underscore_name_to_attr_name(attr_name)
+        raise "invalid attribute name for (#{attr_name.inspect},#{val.inspect})" unless self.class.is_valid_attr_name?(attr_name)
+        set_attribute(attr_name, val)
       end
       debug("Rhino::Base#data == #{data.inspect}")
       data
     end
 
-    # Attempts to provide access to the data by column name.
+    # Attempts to provide access to the data by attribute name.
     # page.meta_ => page.data['meta:']
     # page.meta_author => page.data['meta:author']
     def method_missing(method, *args)
       debug("Rhino::Base#method_missing(#{method.inspect}, #{args.inspect})")
       method = method.to_s
       is_setter_method = method[-1] == ?=
-      column_name = if is_setter_method
-        underscore_name_to_column_name(method[0..-2])
+      attr_name = if is_setter_method
+        underscore_name_to_attr_name(method[0..-2])
       else
-        underscore_name_to_column_name(method)
+        underscore_name_to_attr_name(method)
       end
-      if self.class.is_valid_column_name?(column_name)
-        debug("-> Rhino::Base#method_missing(...): column_name=#{column_name.inspect}")
+      
+      if self.class.is_valid_attr_name?(attr_name)
+        debug("-> Rhino::Base#method_missing(...): attr_name=#{attr_name.inspect}")
         if is_setter_method
-          set_attribute(column_name, args[0])
+          set_attribute(attr_name, args[0])
         else
-          get_attribute(column_name)
+          get_attribute(attr_name)
         end
       else
         super()
       end
     end
     
-    # Converts underscored column names to the corresponding HBase column name.
+    # Converts underscored attribute names to the corresponding attribute name.
     # "meta_author" => "meta:author"
     # "title" => "title:"
     # "title:" => "title:"
-    def underscore_name_to_column_name(uname)
+    def underscore_name_to_attr_name(uname)
       #TODO: this breaks if there is a _ in a column name as defined in the database
       uname = uname.to_s
       if uname.match('_')
@@ -191,10 +196,6 @@ module Rhino
         # don't put another : at the end if one already exists
         uname.match(':') ? uname : "#{uname}:"
       end
-    end
-    
-    def column_name_to_underscore_name(cname)
-      cname.to_s.sub(/:$/, '').gsub(':', '_')
     end
     
     class << self
@@ -249,12 +250,15 @@ module Rhino
         end
       end
       
-      def is_valid_column_name?(column_name)
-        debug("Rhino::Base.is_valid_column_name?(#{column_name.inspect})")
-        return false if column_name.nil? or column_name == ""
-        column_family, column = column_name.split(':', 2)
+      # Determines whether <tt>attr_name</tt> is a valid column family or column, or a defined alias.
+      def is_valid_attr_name?(attr_name)
+        debug("Rhino::Base.is_valid_attr_name?(#{attr_name.inspect})")
+        return false if attr_name.nil? or attr_name == ""
+        attr_name = dealias(attr_name)
+                  
+        column_family, column = attr_name.split(':', 2)
         #TODO: should this check for illegal characters in the column name here as well?
-        column_families.include?(column_family)
+        return column_families.include?(column_family)
       end
       
       # Gets the class name, even if the class is within a module (ex: CoolModule::MyThing -> mythings)

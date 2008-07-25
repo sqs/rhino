@@ -24,6 +24,8 @@ class Page < Rhino::Base
   column_family :links
   column_family :meta
   
+  alias_attribute :author, 'meta:author'
+  
   has_many :links, Link
   
   constraint(:title_required) { |page| page.title and !page.title.empty? }
