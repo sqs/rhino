@@ -152,6 +152,26 @@ describe Rhino::Base do
       new_page.new_record?.should_not == true
     end
   end
+  
+  describe "when creating a new row" do
+    it "should save the data" do
+      page = Page.create('a-page', {:title=>'welcome', :contents=>'hello'})
+      Page.find('a-page').title.should == 'welcome'
+    end
+    
+    it "should not create it if find_or_create is called and the row exists" do
+      page = Page.create('some-page', {:title=>'some page'})
+      Page.find_or_create('some-page', {:title=>'different title'}).title.should == 'some page'
+    end
+    
+    it "should create if find_or_create is called and the row does NOT exist" do
+      # TODO: get some sort of real rollbacks so that tests don't affect the data
+      if existing_page = Page.find('the-page')
+        existing_page.destroy
+      end
+      Page.find_or_create('the-page', {:title=>'my title'}).title.should == 'my title'
+    end
+  end
 
   describe "when deleting a row" do
     before do
@@ -244,6 +264,13 @@ describe Rhino::PromotedColumnFamily do
     it "should allow retrieval by key" do
       @page.links['com.example.an/path'].contents.should == 'Click now'
       @page.links['com.google.www/search'].key.should == 'com.google.www/search' 
+    end
+    
+    it "should respect key changes propagated by the contained model" do
+      pending
+      @page.links['com.google.www/search'].key = 'com.google.www/another/path'
+      @page.save
+      Page.find(@key).links.keys.include?('com.google.www/another/path').should be_true
     end
     
     describe "when subclassing PromotedColumnFamily" do

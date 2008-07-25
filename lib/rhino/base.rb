@@ -273,6 +273,10 @@ module Rhino
         obj
       end
       
+      def find_or_create(key, data={}, metadata={})
+        find(key) || create(key, data, metadata)
+      end
+      
       def find(key, find_opts={})
         debug("Rhino::Base.find(#{key.inspect}, #{find_opts.inspect})")
         
