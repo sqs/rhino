@@ -1,6 +1,6 @@
 module Rhino
   # A table's column families are represented in Rhino as ColumnFamily objects. While column families are explicitly specified on the model with
-  # Rhino::Table.column_family, a family's child columns can change from row to row. A ColumnFamily instance lets you see which child columns,
+  # Rhino::Model.column_family, a family's child columns can change from row to row. A ColumnFamily instance lets you see which child columns,
   # if any, are set on a given row.
   #
   # You can access a row's column families as ColumnFamilies by calling <tt>row.<b>column_family_name</b>_family</tt>, where 
@@ -23,7 +23,7 @@ module Rhino
   #   row.title_english # => 'Hello'
   #   # to access the title:spanish column
   #   row.title_spanish # => 'Hola'
-  # You may also access the value of the column with <tt>Rhino::Table#get_attribute(column_name)</tt>.
+  # You may also access the value of the column with <tt>Rhino::Model#get_attribute(column_name)</tt>.
   #   row.get_attribute('title:english') # => 'Hello'
   class ColumnFamily
     attr_accessor :column_family_name

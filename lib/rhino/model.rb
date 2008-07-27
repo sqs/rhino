@@ -1,7 +1,7 @@
 module Rhino
   # == Specify the structure of your Hbase table
   # To set up the mapping from your Hbase table to Rhino, you must specify the table structure:
-  #   class Page < Rhino::Table
+  #   class Page < Rhino::Model
   #     column_family :title
   #     column_family :contents
   #     column_family :links
@@ -67,14 +67,14 @@ module Rhino
   #
   #   page.meta_author # returns value of meta:author column
   #   page.meta_language = 'en-US' # sets value of meta:language column
-  class Table
+  class Model
     extend Rhino::Constraints::ClassMethods
     include Rhino::Constraints::InstanceMethods
     
     extend Rhino::Aliases::ClassMethods
     
     def initialize(key, data={}, metadata={}, opts={})
-      debug("Rhino::Table#initialize(#{key.inspect}, #{data.inspect}, #{metadata.inspect}, #{opts.inspect})")
+      debug("Model#initialize(#{key.inspect}, #{data.inspect}, #{metadata.inspect}, #{opts.inspect})")
       self.timestamp = metadata.delete(:timestamp)
       self.requested_columns = metadata.delete(:columns)
       self.opts = {:new_record=>true}.merge(opts)
@@ -86,7 +86,7 @@ module Rhino
     attr_accessor :requested_columns
     
     def save
-      debug("Rhino::Table#save() [key=#{key.inspect}, data=#{data.inspect}, timestamp=#{timestamp.inspect}]")
+      debug("Model#save() [key=#{key.inspect}, data=#{data.inspect}, timestamp=#{timestamp.inspect}]")
       check_constraints()
       self.class.htable.put(key, data, new_record?, timestamp)
       if new_record?
@@ -97,7 +97,7 @@ module Rhino
     end
     
     def destroy
-      debug("Rhino::Table#destroy() [key=#{key.inspect}]")
+      debug("Model#destroy() [key=#{key.inspect}]")
       self.class.htable.delete(key)
     end
     
@@ -114,20 +114,20 @@ module Rhino
     end
     
     def set_attribute(attr_name, value)
-      debug("Rhino::Table#set_attribute(#{attr_name.inspect}, #{value.inspect})")
+      debug("Model#set_attribute(#{attr_name.inspect}, #{value.inspect})")
       attr_name = self.class.dealias(attr_name)
       @data[attr_name] = value
     end
     
     def get_attribute(attr_name)
-      debug("Rhino::Table#get_attribute(#{attr_name.inspect}) => #{data[attr_name].inspect}")
+      debug("Model#get_attribute(#{attr_name.inspect}) => #{data[attr_name].inspect}")
       attr_name = self.class.dealias(attr_name)
       @data[attr_name]
     end
     
     # If <tt>attr_name</tt> is a column family, nulls out the value. If <tt>attr_name</tt> is a column, removes the column from the row.
     def delete_attribute(attr_name)
-      debug("Rhino::Table#delete_attribute(#{attr_name.inspect})")
+      debug("Model#delete_attribute(#{attr_name.inspect})")
       attr_name = self.class.dealias(attr_name)
       # TODO: this has problems if the column name has a : in it other than between c.f. and column name
       is_column_family = !attr_name[0..-2].include?(':')
@@ -177,14 +177,14 @@ module Rhino
     
     # Data that is set here must have HBase-style keys (like {'meta:author'=>'John'}), not underscored keys {:meta_author=>'John'}.
     def data=(some_data)
-      debug("Rhino::Table#data=(#{some_data.inspect})")
+      debug("Model#data=(#{some_data.inspect})")
       @data = {}
       some_data.each do |attr_name,val|
         attr_name = underscore_name_to_attr_name(attr_name)
         raise "invalid attribute name for (#{attr_name.inspect},#{val.inspect})" unless self.class.is_valid_attr_name?(attr_name)
         set_attribute(attr_name, val)
       end
-      debug("Rhino::Table#data == #{data.inspect}")
+      debug("Model#data == #{data.inspect}")
       data
     end
 
@@ -193,7 +193,7 @@ module Rhino
     #   page.meta_author # => page.data['meta:author']
     # TODO: should we keep using the trailing underscore methods? (like meta_)
     def method_missing(method, *args)
-      debug("Rhino::Table#method_missing(#{method.inspect}, #{args.inspect})")
+      debug("Model#method_missing(#{method.inspect}, #{args.inspect})")
       method = method.to_s
       is_setter_method = method[-1] == ?=
       attr_name = if is_setter_method
@@ -203,7 +203,7 @@ module Rhino
       end
       
       if self.class.is_valid_attr_name?(attr_name)
-        debug("-> Rhino::Table#method_missing(...): attr_name=#{attr_name.inspect}")
+        debug("-> Rhino::Model#method_missing(...): attr_name=#{attr_name.inspect}")
         if is_setter_method
           set_attribute(attr_name, args[0])
         else
@@ -239,36 +239,36 @@ module Rhino
     
     # Specifies the endpoint URL for the HBase REST API. This URL should end in a slash (e.g., "http://localhost:60010/api").
     # The connection is not actually "established", however, until +connection+ is called.
-    def Table.connect(host, port)
-      debug("Rhino::Table.connect(#{host.inspect}, #{port.inspect})")
+    def Model.connect(host, port)
+      debug("Model.connect(#{host.inspect}, #{port.inspect})")
       raise "already connected" if hbase
       @hbase = Rhino::ThriftInterface::HBase.new(host, port)
     end
     
     # Returns true if connected to the database, and false otherwise.
-    def Table.connected?
+    def Model.connected?
       @hbase != nil
     end
     
-    # Returns the connection to HBase. The connection to HBase is shared across all models and is stored in Rhino::Table,
+    # Returns the connection to HBase. The connection to HBase is shared across all models and is stored in Rhino::Model,
     # so models retrieve it from Rhino::Table.
-    def Table.hbase
-      # uses self.name instead of self.class because in class methods, self.class==Object and self.name=="Rhino::Table"
-      if self.name == "Rhino::Table"
+    def Model.hbase
+      # uses self.name instead of self.class because in class methods, self.class==Object and self.name=="Rhino::Model"
+      if self.name == "Rhino::Model"
         @hbase
       else
-        Rhino::Table.hbase
+        Rhino::Model.hbase
       end
     end
     
     # Returns the HTable interface.
-    def Table.htable
+    def Model.htable
       @htable ||= Rhino::ThriftInterface::HTable.new(hbase, table_name)
     end
     
-    def Table.column_families; @column_families ||= []; end
+    def Model.column_families; @column_families ||= []; end
     
-    def Table.column_family(name)
+    def Model.column_family(name)
       name = name.to_s.gsub(':','')
       if column_families.include?(name)
         debug("column_family '#{name}' already defined for #{self.class.name}")
@@ -276,7 +276,7 @@ module Rhino
       end
       column_families << name
       
-      # also define Table#meta_columns and Table#meta_family methods for each column_family
+      # also define Model#meta_columns and Model#meta_family methods for each column_family
       class_eval %Q{
         def #{name}_family
           @#{name}_family ||= Rhino::ColumnFamily.new(self, :#{name})
@@ -294,7 +294,7 @@ module Rhino
     
     # Specifying that a model <tt>has_many :links</tt> overwrites the Model#links method to
     # return a proxied array of columns underneath the <tt>links:</tt> column family.
-    def Table.has_many(column_family_name, cf_class=Rhino::Cell)
+    def Model.has_many(column_family_name, cf_class=Rhino::Cell)
       column_family_name = column_family_name.to_s.gsub(':','')
       define_method(column_family_name) do
         cf_class.connect(self, send("#{column_family_name}_family"))
@@ -302,8 +302,8 @@ module Rhino
     end
     
     # Determines whether <tt>attr_name</tt> is a valid column family or column, or a defined alias.
-    def Table.is_valid_attr_name?(attr_name)
-      debug("Rhino::Table.is_valid_attr_name?(#{attr_name.inspect})")
+    def Model.is_valid_attr_name?(attr_name)
+      debug("Model.is_valid_attr_name?(#{attr_name.inspect})")
       return false if attr_name.nil? or attr_name == ""
       attr_name = dealias(attr_name)
                 
@@ -313,27 +313,27 @@ module Rhino
     end
     
     # Gets the class name, even if the class is within a module (ex: CoolModule::MyThing -> mythings)
-    def Table.table_name
+    def Model.table_name
       self.name.downcase.split('::')[-1] + 's'
     end
     
     # loads an existing record's data into an object
-    def Table.load(key, data, metadata)
+    def Model.load(key, data, metadata)
       new(key, data, metadata, {:new_record=>false})
     end
     
-    def Table.create(key, data={}, metadata={})
+    def Model.create(key, data={}, metadata={})
       obj = new(key, data, metadata)
       obj.save
       obj
     end
     
-    def Table.find_or_create(key, data={}, metadata={})
+    def Model.find_or_create(key, data={}, metadata={})
       find(key) || create(key, data, metadata)
     end
     
-    def Table.find(key, find_opts={})
-      debug("Rhino::Table.find(#{key.inspect}, #{find_opts.inspect})")
+    def Model.find(key, find_opts={})
+      debug("Model.find(#{key.inspect}, #{find_opts.inspect})")
       
       # handle opts
       find_opts.keys.each { |fo_key| raise ArgumentError, "invalid key for find opts: #{fo_key.inspect}" unless %w(columns timestamp).include?(fo_key.to_s) }
@@ -357,7 +357,7 @@ module Rhino
       end
     end
     
-    def Table.delete_all
+    def Model.delete_all
       htable.delete_all
     end
   end

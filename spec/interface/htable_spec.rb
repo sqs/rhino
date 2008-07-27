@@ -1,6 +1,6 @@
 require 'spec/spec_helper.rb'
 
-# TODO these tests should not be dependent on Rhino::Table (Page is a subclass of Table)
+# TODO these tests should not be dependent on Rhino::Model (Page is a subclass of Model)
 describe Rhino::Interface::HTable do
   before do
     @page_htable = Page.htable

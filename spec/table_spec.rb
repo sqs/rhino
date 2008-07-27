@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/spec_helper.rb'
 #require 'spec/fixtures/pages' # TODO: get real fixtures!!
 
-describe Rhino::Table do
+describe Rhino::Model do
   after do
     Page.delete_all
   end

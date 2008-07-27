@@ -42,7 +42,7 @@ end
 ####################################
 # app/models/user.rb
 ####################################
-class User < Rhino::Table
+class User < Rhino::Model
   column_family :info
   column_family :pages
   
@@ -69,7 +69,7 @@ require '/Users/sqs/proj/rhino/lib/rhino'
 
 Rhino::Cell.send(:extend, Rhino::ActiveRecordImpersonation::CellClassMethods)
 Rhino::Cell.send(:include, Rhino::ActiveRecordImpersonation::CellInstanceMethods)
-Rhino::Table.connect('localhost', '9090')
+Rhino::Model.connect('localhost', '9090')
 
 ####################################
 # app/controllers/pages_controller.rb
