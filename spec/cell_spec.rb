@@ -126,49 +126,21 @@ describe Rhino::Cell do
       end
     end
     
-    it "should allow deletion from the list of objects" do
-      @page.links.create('com.microsoft', 'Microsoft')
-      @page.links.find('com.microsoft').contents.should == 'Microsoft'
-      @page.links.find('com.microsoft').destroy
-      @page.links.find('com.microsoft').should == nil
-    end
-    
     it "should allow retrieval of all of the column names"
-  end
-  
-  describe "when using constraints" do
-    before do
-      blank_title = ""
-      @page = Page.new('some-page', {:title=>blank_title, :contents=>"hello"})
-    end
     
-    it "should not save objects that violate constraints" do
-      lambda { @page.save }.should raise_error(Rhino::ConstraintViolation)
-    end
-    
-    it "should save objects that pass constraints" do
-      @page.title = "any title will do"
-      lambda { @page.save }.should_not raise_error(Rhino::ConstraintViolation)
-    end
-  end
-  
-  describe "when using attribute aliases" do
-    it "should read the value of the target" do
-      @page = Page.new('some-page')
-      @page.meta_author = 'Alice'
-      @page.author.should == 'Alice'
-    end
-    
-    it "should set the value of the target" do
-      @page = Page.new('some-page')
-      @page.author = 'Cindy'
-      @page.meta_author.should == 'Cindy'
-    end
-    
-    it "should allow instantiation using attribute aliases" do
-      @page = Page.create('some-page', :author=>'Bob', :title=>'a title')
-      @page.meta_author.should == 'Bob'
-      @page.author.should == 'Bob'
+    describe "when deleting" do
+      it "should allow deletion from the list of objects" do
+        #'links:com.google.www/search'=>'Search engine'
+        @page.links.find('com.google.www/search').contents.should == 'Search engine'
+        @page.links.find('com.google.www/search').destroy
+        @page.links.find('com.google.www/search').should == nil
+      end
+      
+      it "should immediately commit deletes to the database" do
+        @page.links.find('com.google.www/search').contents.should == 'Search engine'
+        @page.links.find('com.google.www/search').destroy
+        Page.find(@key).links.find('com.google.www/search').should == nil
+      end
     end
   end
 end

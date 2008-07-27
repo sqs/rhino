@@ -247,21 +247,55 @@ describe Rhino::Base do
       Page.find('example.com', :timestamp=>nonexistent_time).should == nil
     end
   
-    describe "when working with timestamps" do
-      it "should save and retrieve a row by timestamp" do
-        key = 'google.com'
-        p1 = Page.create(key, {:title=>'google a while ago'}, {:timestamp=>@a_while_ago})
-        p2 = Page.create(key, {:title=>'google even longer ago'}, {:timestamp=>@even_longer_ago})
-        Page.find(key, :timestamp=>@a_while_ago).title.should == 'google a while ago'
-        Page.find(key, :timestamp=>@even_longer_ago).title.should == 'google even longer ago'
-      end
-      
-      it "should find the latest row if no timestamp is specified"
+    it "should save and retrieve a row by timestamp" do
+      key = 'google.com'
+      p1 = Page.create(key, {:title=>'google a while ago'}, {:timestamp=>@a_while_ago})
+      p2 = Page.create(key, {:title=>'google even longer ago'}, {:timestamp=>@even_longer_ago})
+      Page.find(key, :timestamp=>@a_while_ago).title.should == 'google a while ago'
+      Page.find(key, :timestamp=>@even_longer_ago).title.should == 'google even longer ago'
     end
+    
+    it "should find the latest row if no timestamp is specified"
   
   end
 
   describe "when retrieving only certain columns" do
     it "should retrieve only the requested columns"
+  end
+  
+  describe "when using constraints" do
+    before do
+      blank_title = ""
+      @page = Page.new('some-page', {:title=>blank_title, :contents=>"hello"})
+    end
+    
+    it "should not save objects that violate constraints" do
+      lambda { @page.save }.should raise_error(Rhino::ConstraintViolation)
+    end
+    
+    it "should save objects that pass constraints" do
+      @page.title = "any title will do"
+      lambda { @page.save }.should_not raise_error(Rhino::ConstraintViolation)
+    end
+  end
+  
+  describe "when using attribute aliases" do
+    it "should read the value of the target" do
+      @page = Page.new('some-page')
+      @page.meta_author = 'Alice'
+      @page.author.should == 'Alice'
+    end
+    
+    it "should set the value of the target" do
+      @page = Page.new('some-page')
+      @page.author = 'Cindy'
+      @page.meta_author.should == 'Cindy'
+    end
+    
+    it "should allow instantiation using attribute aliases" do
+      @page = Page.create('some-page', :author=>'Bob', :title=>'a title')
+      @page.meta_author.should == 'Bob'
+      @page.author.should == 'Bob'
+    end
   end
 end

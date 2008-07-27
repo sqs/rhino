@@ -131,6 +131,7 @@ module Rhino
     
     def destroy
       self.class.row.delete_attribute(attr_name)
+      self.class.row.save
     end
   end
 end
