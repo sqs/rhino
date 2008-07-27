@@ -14,6 +14,19 @@ describe Rhino::Interface::HTable do
     it "should raise RowNotFound for nonexistent rows" do
       lambda { @page_htable.get('this row key does not exist') }.should raise_error(Rhino::Interface::HTable::RowNotFound)
     end
+    
+    it "should retrieve the timestamp" do
+      # TODO: don't know how to find the timestamp of a row that's been retrieved!
+      # i dont think it's possible using the current thrift api, but it is possible from ruby
+      # in hbase-trunk/bin/HBase.rb
+      pending
+      # ts = Time.now.to_i
+      # @page_htable.put('abc', {'title:'=>'hello1'}, false, ts)
+      # @page_htable.put('abc', {'title:'=>'hello2'}, false, ts+1000)
+      # @page_htable.put('abc', {'title:'=>'hello3'}, false, ts+5000)
+      #hie @page_htable.hbase.getVerTs('pages', 'abc', 'title:', ts+10000, 3)
+      #hie @page_htable.get('abc', {:timestamp=>ts})
+    end
   end
   
   describe "when deleting all rows" do
