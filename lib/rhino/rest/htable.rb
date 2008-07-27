@@ -79,7 +79,7 @@ module Rhino
             when 204 #no data - probably an incorrect colname
               raise "Didn't get any data back - check your column names!"
             when 404
-              raise RowNotFound, "Could not find row '#{key}'"
+              raise Rhino::Interface::HTable::RowNotFound, "Could not find row '#{key}'"
             else
               nil
           end
@@ -151,7 +151,7 @@ module Rhino
           case response.code.to_i
             when 201
               # redirect - grab the path and send
-              Scanner.new(self, "http://#{@uri.host}:#{@uri.port}" + response["Location"])
+              Rhino::RESTInterface::Scanner.new(self, "http://#{@uri.host}:#{@uri.port}" + response["Location"])
             else
               unexpected_response(response)
           end

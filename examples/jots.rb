@@ -7,7 +7,7 @@ include Rhino::Debug
 
 Rhino::Base.connect("http://localhost:60010/api")
 
-class Jot < Rhino::PromotedColumnFamily
+class Jot < Rhino::Cell
   belongs_to :user
 end
 

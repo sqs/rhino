@@ -54,11 +54,15 @@ module Rhino
           hbase.put(table_name, key, "title:", "PLACEHOLDER")
         end
         
-        mutations = []
-        data.each do |col,val|
-          # see Rhino::Base#delete_attribute for an explanation of why val.nil? is checked
-          next if val.nil?
-          mutations << Apache::Hadoop::Hbase::Thrift::Mutation.new(:column=>col, :value=>val)
+        mutations = data.collect do |col,val|
+          # if the value is nil, that means we are deleting that cell
+          mutation_data = {:column=>col}
+          if val.nil?
+            mutation_data[:isDelete] = true
+          else
+            mutation_data[:value] = val
+          end
+          Apache::Hadoop::Hbase::Thrift::Mutation.new(mutation_data)
         end
         
         if timestamp

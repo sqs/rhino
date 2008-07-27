@@ -10,3 +10,7 @@ end
 def debug(str)
   puts "\e[33mDEBUG: #{str}\e[0m"
 end
+
+def highlight(str)
+  puts "\e[35m**** #{str}\e[0m"
+end

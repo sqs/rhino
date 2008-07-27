@@ -88,8 +88,7 @@ module Rhino
     def save
       debug("Rhino::Base#save() [key=#{key.inspect}, data=#{data.inspect}, timestamp=#{timestamp.inspect}]")
       check_constraints()
-      put_return_val = self.class.connection.put(key, data, timestamp)
-      raise "put failed" unless put_return_val
+      self.class.htable.put(key, data, new_record?, timestamp)
       if new_record?
         @opts[:new_record] = false
         @opts[:was_new_record] = true
@@ -99,7 +98,7 @@ module Rhino
     
     def destroy
       debug("Rhino::Base#destroy() [key=#{key.inspect}]")
-      self.class.connection.delete(key, columns)
+      self.class.htable.delete(key)
     end
     
     def data
@@ -138,6 +137,7 @@ module Rhino
         # TODO: this only sets it to nil, it doesn't actually remove the column. that's because I need to find a way to signal
         # that the column should be removed, but @data.delete(attr_name) will also mean that #save doesn't update it, since
         # it isn't in @data.keys.
+        # TODO: test this all - how does setting nil work with versioning (old versions still exist, I presume, etc.)
         set_attribute(attr_name, nil)
       end
     end
@@ -175,8 +175,9 @@ module Rhino
     end
 
     # Attempts to provide access to the data by attribute name.
-    # page.meta_ => page.data['meta:']
-    # page.meta_author => page.data['meta:author']
+    #   page.meta_ # => page.data['meta:']
+    #   page.meta_author # => page.data['meta:author']
+    # TODO: should we keep using the trailing underscore methods? (like meta_)
     def method_missing(method, *args)
       debug("Rhino::Base#method_missing(#{method.inspect}, #{args.inspect})")
       method = method.to_s
@@ -214,113 +215,136 @@ module Rhino
       end
     end
     
-    class << self
-      # Specifies the endpoint URL for the HBase REST API. This URL should end in a slash (e.g., "http://localhost:60010/api").
-      # The connection is not actually "established", however, until +connection+ is called.
-      def connect(rest_api_endpoint)
-        debug("Rhino::Base.connect(#{rest_api_endpoint.inspect})")
-        raise "already connected" if @rest_api_endpoint
-        @@rest_api_endpoint = rest_api_endpoint
+    
+    
+    
+    #################
+    # CLASS METHODS #
+    #################
+    
+    
+    # Specifies the endpoint URL for the HBase REST API. This URL should end in a slash (e.g., "http://localhost:60010/api").
+    # The connection is not actually "established", however, until +connection+ is called.
+    def Base.connect(host, port)
+      debug("Rhino::Base.connect(#{host.inspect}, #{port.inspect})")
+      raise "already connected" if hbase
+      @hbase = Rhino::ThriftInterface::HBase.new(host, port)
+    end
+    
+    # Returns true if connected to the database, and false otherwise.
+    def Base.connected?
+      @hbase != nil
+    end
+    
+    # Returns the connection to HBase. The connection to HBase is shared across all models and is stored in Rhino::Base,
+    # so models retrieve it from Rhino::Base.
+    def Base.hbase
+      # uses self.name instead of self.class because in class methods, self.class==Object and self.name=="Rhino::Base"
+      if self.name == "Rhino::Base"
+        @hbase
+      else
+        Rhino::Base.hbase
       end
-      
-      attr_reader :rest_api_endpoint
-      
-      def connection
-        table_endpoint = "#{@@rest_api_endpoint}/#{table_name}"
-        @connection ||= HBase::HTable.new(table_endpoint)
+    end
+    
+    # Returns the HTable interface.
+    def Base.htable
+      @htable ||= Rhino::ThriftInterface::HTable.new(hbase, table_name)
+    end
+    
+    def Base.column_families; @column_families ||= []; end
+    
+    def Base.column_family(name)
+      name = name.to_s.gsub(':','')
+      if column_families.include?(name)
+        debug("column_family '#{name}' already defined for #{self.class.name}")
+        column_families.delete(name)
       end
+      column_families << name
       
-      attr_accessor :column_families
-      
-      def column_family(name)
-        @column_families ||= []
-        name = name.to_s.gsub(':','')
-        if @column_families.include?(name)
-          debug("column_family '#{name}' already defined for #{self.class.name}")
-          @column_families.delete(name)
-        end
-        @column_families << name
-        
-        # also define Base#meta_columns and Base#meta_family methods for each column_family
-        class_eval %Q{
-          def #{name}_family
-            @#{name}_family ||= Rhino::ColumnFamily.new(self, :#{name})
-          end
-          
-          def #{name}_column_names
-            #{name}_family.column_names
-          end
-          
-          def #{name}_column_full_names
-            #{name}_family.column_full_names
-          end
-        }
-      end
-      
-      # Specifying that a model <tt>has_many :links</tt> overwrites the Model#links method to
-      # return a proxied array of columns underneath the <tt>links:</tt> column family.
-      def has_many(column_family_name, cf_class=Rhino::PromotedColumnFamily)
-        column_family_name = column_family_name.to_s.gsub(':','')
-        define_method(column_family_name) do
-          cf_class.connect(self, send("#{column_family_name}_family"))
-        end
-      end
-      
-      # Determines whether <tt>attr_name</tt> is a valid column family or column, or a defined alias.
-      def is_valid_attr_name?(attr_name)
-        debug("Rhino::Base.is_valid_attr_name?(#{attr_name.inspect})")
-        return false if attr_name.nil? or attr_name == ""
-        attr_name = dealias(attr_name)
-                  
-        column_family, column = attr_name.split(':', 2)
-        #TODO: should this check for illegal characters in the column name here as well?
-        return column_families.include?(column_family)
-      end
-      
-      # Gets the class name, even if the class is within a module (ex: CoolModule::MyThing -> mythings)
-      def table_name
-        self.name.downcase.split('::')[-1] + 's'
-      end
-      
-      # loads an existing record's data into an object
-      def load(key, data, metadata)
-        new(key, data, metadata, {:new_record=>false})
-      end
-      
-      def create(key, data={}, metadata={})
-        obj = new(key, data, metadata)
-        obj.save
-        obj
-      end
-      
-      def find_or_create(key, data={}, metadata={})
-        find(key) || create(key, data, metadata)
-      end
-      
-      def find(key, find_opts={})
-        debug("Rhino::Base.find(#{key.inspect}, #{find_opts.inspect})")
-        
-        # handle opts
-        find_opts.keys.each { |fo_key| raise ArgumentError, "invalid key for find opts: #{fo_key.inspect}" unless %w(columns timestamp).include?(fo_key.to_s) }
-        raise ArgumentError, "columns key for find opts is unimplemented" if find_opts.keys.include?(:columns)
-        timestamp = find_opts[:timestamp]
-        columns = if find_opts.include?(:columns)
-          # convert like: %w(col1 col2 col3) => "col1;col2;col3"
-          find_opts.delete[:columns].collect(&:to_s).join(';')
-        else
-          nil
+      # also define Base#meta_columns and Base#meta_family methods for each column_family
+      class_eval %Q{
+        def #{name}_family
+          @#{name}_family ||= Rhino::ColumnFamily.new(self, :#{name})
         end
         
-        # find the row
-        begin
-          data = connection.get(key, :timestamp=>timestamp, :columns=>columns)
-          metadata = {:timestamp=>timestamp, :columns=>columns}
-          debug("-> found [key=#{key.inspect}, data=#{data.inspect}]")
-          load(key, data, metadata)
-        rescue HBase::RowNotFound
-          return nil
+        def #{name}_column_names
+          #{name}_family.column_names
         end
+        
+        def #{name}_column_full_names
+          #{name}_family.column_full_names
+        end
+      }
+    end
+    
+    # Specifying that a model <tt>has_many :links</tt> overwrites the Model#links method to
+    # return a proxied array of columns underneath the <tt>links:</tt> column family.
+    def Base.has_many(column_family_name, cf_class=Rhino::Cell)
+      column_family_name = column_family_name.to_s.gsub(':','')
+      define_method(column_family_name) do
+        cf_class.connect(self, send("#{column_family_name}_family"))
       end
+    end
+    
+    # Determines whether <tt>attr_name</tt> is a valid column family or column, or a defined alias.
+    def Base.is_valid_attr_name?(attr_name)
+      debug("Rhino::Base.is_valid_attr_name?(#{attr_name.inspect})")
+      return false if attr_name.nil? or attr_name == ""
+      attr_name = dealias(attr_name)
+                
+      column_family, column = attr_name.split(':', 2)
+      #TODO: should this check for illegal characters in the column name here as well?
+      return column_families.include?(column_family)
+    end
+    
+    # Gets the class name, even if the class is within a module (ex: CoolModule::MyThing -> mythings)
+    def Base.table_name
+      self.name.downcase.split('::')[-1] + 's'
+    end
+    
+    # loads an existing record's data into an object
+    def Base.load(key, data, metadata)
+      new(key, data, metadata, {:new_record=>false})
+    end
+    
+    def Base.create(key, data={}, metadata={})
+      obj = new(key, data, metadata)
+      obj.save
+      obj
+    end
+    
+    def Base.find_or_create(key, data={}, metadata={})
+      find(key) || create(key, data, metadata)
+    end
+    
+    def Base.find(key, find_opts={})
+      debug("Rhino::Base.find(#{key.inspect}, #{find_opts.inspect})")
+      
+      # handle opts
+      find_opts.keys.each { |fo_key| raise ArgumentError, "invalid key for find opts: #{fo_key.inspect}" unless %w(columns timestamp).include?(fo_key.to_s) }
+      raise ArgumentError, "columns key for find opts is unimplemented" if find_opts.keys.include?(:columns)
+      timestamp = find_opts[:timestamp]
+      columns = if find_opts.include?(:columns)
+        # convert like: %w(col1 col2 col3) => "col1;col2;col3"
+        find_opts.delete[:columns].collect(&:to_s).join(';')
+      else
+        nil
+      end
+      
+      # find the row
+      begin
+        data = htable.get(key, :timestamp=>timestamp, :columns=>columns)
+        metadata = {:timestamp=>timestamp, :columns=>columns}
+        debug("-> found [key=#{key.inspect}, data=#{data.inspect}]")
+        load(key, data, metadata)
+      rescue Rhino::Interface::HTable::RowNotFound
+        return nil
+      end
+    end
+    
+    def Base.delete_all
+      htable.delete_all
     end
   end
 end

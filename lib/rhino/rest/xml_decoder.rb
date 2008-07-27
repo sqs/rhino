@@ -1,18 +1,20 @@
-module HBase
-  module XmlDecoder
-    def parse_row_result(xml)
-      doc = XML::Parser.string(xml).parse
+module Rhino
+  module RESTInterface
+    module XmlDecoder
+      def parse_row_result(xml)
+        doc = XML::Parser.string(xml).parse
 
-      name_node = doc.root.find_first("/row/name")
-      name = name_node ? name_node.content.strip : nil
+        name_node = doc.root.find_first("/row/name")
+        name = name_node ? name_node.content.strip : nil
       
-      values = {}
+        values = {}
       
-      doc.find("/row/column").each do |node|
-        values[node.find_first("name").content.strip.unpack("m")] = node.find_first("value").content.strip.unpack("m").first
+        doc.find("/row/column").each do |node|
+          values[node.find_first("name").content.strip.unpack("m")] = node.find_first("value").content.strip.unpack("m").first
+        end
+      
+        [name, values]
       end
-      
-      [name, values]
     end
   end
 end

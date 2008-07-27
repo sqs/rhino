@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/spec_helper.rb'
 
-describe Rhino::PromotedColumnFamily do
+describe Rhino::Cell do
   describe "when working with a has_many relationship" do
     before do
       @key = 'hasmany.example.com'
@@ -67,11 +67,22 @@ describe Rhino::PromotedColumnFamily do
       @page.links.find('com.apple').new_record?.should == true
     end
     
-    describe "when subclassing PromotedColumnFamily" do
+    describe "when subclassing Cell" do
       it { @page.links.find('com.example.an/path').class.should == Link }
       
       it "should allow custom methods to be defined on the subclass" do
         @page.links.find('com.example.an/path').url.should == 'http://an.example.com/path'
+      end
+    end
+    
+    describe "when a model has_many of two things" do
+      before do
+        @page.images.create_multiple('com.apple/logo.png'=>'Apple Logo', 'com.google/logo.png'=>'Google Logo')
+      end
+      
+      it "should not confuse cells from different subclasses" do
+        @page.links.find('com.apple/logo.png').should == nil
+        @page.images.find('com.google.www/search').should == nil
       end
     end
     
@@ -83,9 +94,34 @@ describe Rhino::PromotedColumnFamily do
       @page.links.find('com.example.an/path').row.should == @page
     end
   
-    it "should allow adding to the list of objects"
+    describe "adding objects" do
+      it "should allow a new cell to be added" do
+        @page.links.create('com.yahoo', "Yahoo")
+        the_link = @page.links.find('com.yahoo')
+        the_link.contents.should == 'Yahoo'
+      end
+      
+      it "should allow multiple cells to be added by hash" do
+        @page.links.create_multiple('com.yahoo'=>'Yahoo', 'com.cisco'=>'Cisco')
+        @page.links.find('com.yahoo').contents.should == 'Yahoo'
+        @page.links.find('com.cisco').contents.should == 'Cisco'
+      end
+      
+      it "should determine whether a cell is a new_record?"
+      
+      it "should determine new_record? status of cells independently from their parent class" do
+        pending
+        apache_link = @page.links.build('org.apache', 'ASF')
+        apache_link.new_record?.should == true
+      end
+    end
     
-    it "should allow deletion from the list of objects"
+    it "should allow deletion from the list of objects" do
+      @page.links.create('com.microsoft', 'Microsoft')
+      @page.links.find('com.microsoft').contents.should == 'Microsoft'
+      @page.links.find('com.microsoft').destroy
+      @page.links.find('com.microsoft').should == nil
+    end
     
     it "should allow retrieval of all of the column names"
   end

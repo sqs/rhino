@@ -4,9 +4,9 @@ require File.expand_path(File.dirname(__FILE__) + "/../lib/rhino")
 
 include Rhino::Debug
 
-Rhino::Base.connect("http://localhost:60010/api")
+Rhino::Base.connect('localhost', 9090) unless Rhino::Base.connected?
 
-class Link < Rhino::PromotedColumnFamily
+class Link < Rhino::Cell
   belongs_to :page
   
   def url
@@ -18,23 +18,21 @@ class Link < Rhino::PromotedColumnFamily
   end
 end
 
+class Image < Rhino::Cell
+  belongs_to :page
+end
+
 class Page < Rhino::Base
   column_family :title
   column_family :contents
   column_family :links
   column_family :meta
+  column_family :images
   
   alias_attribute :author, 'meta:author'
   
   has_many :links, Link
+  has_many :images, Image
   
   constraint(:title_required) { |page| page.title and !page.title.empty? }
-end
-
-page_key = 'example.com'
-page_data = {'contents:'=>"<h1>Welcome to Example Page</h1>",
-            'title:'=>'Example Page', 'meta:author'=>'John Smith', 'links:com.example.www/path'=>'Click here'}
-unless page = Page.find(page_key) and page.data == page_data
-  puts "Creating mock Page with key='#{page_key}' and data #{page_data.inspect}"
-  Page.create(page_key, page_data)
 end

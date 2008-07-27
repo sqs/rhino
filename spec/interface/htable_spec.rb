@@ -35,7 +35,6 @@ describe Rhino::Interface::HTable do
     before do
       @some_key = 'some-key'
       @page_htable.put(@some_key, {'title:'=>'abc'})
-      
     end
     
     it "should remove all versions and columns when only key is specified and only one version exists" do
@@ -45,6 +44,17 @@ describe Rhino::Interface::HTable do
     end
     
     it "should remove all versions and columns when only key is specified and multiple versions exist"
+  end
+  
+  describe "when putting existing rows" do
+    it "should delete cells that previously existed if their value is changed to nil" do
+      key = 'example.com'
+      @page_htable.put(key, {'title:'=>'howdy', 'links:com.google'=>'Google'}, true)
+      @page_htable.get(key).keys.include?('links:com.google').should == true
+      # the cell has been deleted
+      @page_htable.put(key, {'title:'=>'howdy', 'links:com.google'=>nil}, false)
+      @page_htable.get(key).keys.include?('links:com.google').should == false
+    end
   end
   
   describe "when putting new rows" do

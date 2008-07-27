@@ -1,10 +1,10 @@
 module Rhino
   module ActiveRecordImpersonation
-    module PromotedColumnFamilyClassMethods
+    module CellClassMethods
     
     end
   
-    module PromotedColumnFamilyInstanceMethods
+    module CellInstanceMethods
       def new_record?
         true
       end
