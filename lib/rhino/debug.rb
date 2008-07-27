@@ -14,3 +14,8 @@ end
 def highlight(str)
   puts "\e[35m**** #{str}\e[0m"
 end
+
+def hie(obj)
+  highlight obj.inspect
+  exit!
+end
