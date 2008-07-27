@@ -298,4 +298,44 @@ describe Rhino::Table do
       @page.author.should == 'Bob'
     end
   end
+  
+  describe "when testing for equality between two rows" do
+    it "should find two rows equal if their key, data, and timestamp are the same" do
+      Page.create('a', :title=>'b')
+      Page.find('a').should == Page.find('a')
+    end
+    
+    it "should find two rows equal even if one was create'd and one was find'ed" do
+      # in this case, the only difference is that page1 (created) has @was_new_record=true, while page2 doesn't
+      # that should not matter in a test of equality
+      page1 = Page.create('a', :title=>'b', 'links:c'=>'d')
+      page2 = Page.find('a')
+      page1.should == page2
+    end
+    
+    it "should find two rows nonequal if their keys are not the same" do
+      pending "can't yet change names of keys - and maybe this will never be implemented b/c it won't make sense"
+      # Page.create('a', :title=>'b', 'links:c'=>'d')
+      # page1 = Page.find('a')
+      # page2 = Page.find('a')
+      # page2.key = 'a-different-key'
+      # page1.should_not == page2
+    end
+    
+    it "should find two rows nonequal if their data are not the same" do
+      Page.create('a', :title=>'b', 'links:c'=>'d')
+      page1 = Page.find('a')
+      page2 = Page.find('a')
+      page2.title = 'a-different-title'
+      page1.should_not == page2
+    end
+    
+    it "should find two rows nonequal if either is a new record" do
+      p1 = Page.create('a', :title=>'b')
+      p2 = Page.new('a', :title=>'b')
+      p1.should_not == p2
+    end
+    
+    it "should find two rows nonequal if their timestamps are not the same"
+  end
 end

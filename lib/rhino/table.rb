@@ -150,6 +150,20 @@ module Rhino
       @data
     end
     
+    # Returns true if the +comparison_object+ is the same object; or is of the same type, has the same key and data, and is not a new record.
+    def ==(comparison_object)
+      comparison_object.equal?(self) ||
+        (comparison_object.instance_of?(self.class) &&
+          comparison_object.data == data &&
+          comparison_object.key == key &&
+          !comparison_object.new_record?)
+    end
+
+    # Delegates to ==
+    def eql?(comparison_object)
+      self == comparison_object
+    end
+    
     private
     
     attr_reader :opts
