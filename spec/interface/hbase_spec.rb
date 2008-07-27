@@ -6,7 +6,7 @@ describe Rhino::Interface::HBase do
       # TODO: this is a hardcoded list of tables in my db - should get real fixtures!!
       @table_names = %w(users pages)
       # TODO: there should be a Rhino-namespace way of getting the hbase object, not just through the model
-      @hbase = Rhino::Base.hbase
+      @hbase = Rhino::Table.hbase
     end
     
     it "should return a list of tables" do

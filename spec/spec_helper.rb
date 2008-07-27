@@ -4,7 +4,7 @@ require File.expand_path(File.dirname(__FILE__) + "/../lib/rhino")
 
 include Rhino::Debug
 
-Rhino::Base.connect('localhost', 9090) unless Rhino::Base.connected?
+Rhino::Table.connect('localhost', 9090) unless Rhino::Table.connected?
 
 class Link < Rhino::Cell
   belongs_to :page
@@ -22,7 +22,7 @@ class Image < Rhino::Cell
   belongs_to :page
 end
 
-class Page < Rhino::Base
+class Page < Rhino::Table
   column_family :title
   column_family :contents
   column_family :links

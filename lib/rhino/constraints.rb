@@ -1,7 +1,7 @@
 module Rhino
   module Constraints
     module ClassMethods
-      def self.extended(base)
+      def self.extended(table)
         @@constraints = {}
       end
     

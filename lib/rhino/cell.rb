@@ -91,8 +91,8 @@ module Rhino
     end
     
     def initialize(key, contents)
-      # Don't set these through #key= and #contents= because those go into Rhino::Base and change the data,
-      # but this data is coming directly from Rhino::Base and is thus up-to-date already.
+      # Don't set these through #key= and #contents= because those go into Rhino::Table and change the data,
+      # but this data is coming directly from Rhino::Table and is thus up-to-date already.
       @key = key
       @contents = contents
     end

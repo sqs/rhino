@@ -1,7 +1,7 @@
 module Rhino
   module Aliases
     module ClassMethods
-      def self.extended(base)
+      def self.extended(table)
         @@aliases = {}
       end
       
@@ -20,7 +20,7 @@ module Rhino
         unless is_valid_attr_name?(existing_attribute_name)
           raise ArgumentError, "alias_attribute's existing_attribute_name must be a HBase-style column name ('info:email', not :info_email)"
         end
-        debug("Rhino::Base.alias_attribute(#{new_attribute_name.inspect}, #{existing_attribute_name.inspect})")
+        debug("Rhino::Table.alias_attribute(#{new_attribute_name.inspect}, #{existing_attribute_name.inspect})")
         self.aliases[new_attribute_name] = existing_attribute_name
       end
       

@@ -13,13 +13,13 @@ Rhino uses the HBase Thrift API. You must first start HBase, then start the Thri
 
 The following code points Rhino to the Thrift server you just started (which by default listens on localhost:9090).
   
-  Rhino::Base.connect('localhost', 9090)
+  Rhino::Table.connect('localhost', 9090)
   
 === Describe your table
 
 A class definition like:
 
-  class Page < Rhino::Base
+  class Page < Rhino::Table
     column_family :title
     column_family :contents
     column_family :links
