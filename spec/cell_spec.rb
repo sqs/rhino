@@ -101,6 +101,16 @@ describe Rhino::Cell do
         the_link.contents.should == 'Yahoo'
       end
       
+      it "should save the row when 'create' is used" do
+        @page.links.create('com.yahoo', 'Yahoo')
+        Page.find(@key).links.find('com.yahoo').contents.should == 'Yahoo'
+      end
+      
+      it "should not save the row when 'add' is used" do
+        @page.links.add('com.yahoo', 'Yahoo')
+        Page.find(@key).links.find('com.yahoo').should == nil
+      end
+      
       it "should allow multiple cells to be added by hash" do
         @page.links.create_multiple('com.yahoo'=>'Yahoo', 'com.cisco'=>'Cisco')
         @page.links.find('com.yahoo').contents.should == 'Yahoo'
