@@ -38,6 +38,7 @@ describe Rhino::Cell do
     
       it "should save key changes propagated by the contained model" do
         change_the_key
+        @reloaded_page_link_keys.include?('com.google.www/search').should == false
         @reloaded_page_link_keys.include?('com.google.www/another/path').should == true
       end
       

@@ -33,6 +33,14 @@ describe Rhino::Model do
       Page.find("this is a non-existent key").should == nil
     end
   end
+  
+  
+  describe "when introspecting a row" do
+    it "should list the columns present" do
+      page = Page.create('somekey', :title=>'a', :meta_author=>'b', 'links:com.google'=>'c')
+      page.columns.sort.should == %w(links:com.google meta:author title:)
+    end
+  end
 
   describe "when reading existing rows from HBase" do
     before do
@@ -145,6 +153,22 @@ describe Rhino::Model do
       @page.title = prev_title
       @page.save
       @page.title.should == prev_title
+    end
+    
+    it "should set was_new_record to true if it previously was a new record" do
+      Page.create('a', :title=>'b').was_new_record?.should == true
+    end
+    
+    it "should not set was_new_record to true if it previously was not a new record" do
+      Page.new('a', :title=>'b').save
+      page = Page.find('a')
+      page.title = 'c'
+      page.save
+      page.was_new_record?.should == false
+    end
+    
+    it "should return true if it successfully saved the row" do
+      Page.new('a', :title=>'b').save.should == true
     end
   end
 

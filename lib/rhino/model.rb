@@ -113,6 +113,10 @@ module Rhino
       @opts[:new_record]
     end
     
+    def was_new_record?
+      @opts[:was_new_record] || false
+    end
+    
     def set_attribute(attr_name, value)
       debug("Model#set_attribute(#{attr_name.inspect}, #{value.inspect})")
       attr_name = self.class.dealias(attr_name)
@@ -157,11 +161,6 @@ module Rhino
           comparison_object.data == data &&
           comparison_object.key == key &&
           !comparison_object.new_record?)
-    end
-
-    # Delegates to ==
-    def eql?(comparison_object)
-      self == comparison_object
     end
     
     private
