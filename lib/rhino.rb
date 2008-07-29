@@ -1,18 +1,10 @@
 $:.unshift File.dirname(__FILE__)
 
 require "rubygems"
-require "net/http"
-require "erb"
-require "xml/libxml"
-#require "ruby-hbase"
 
 require 'rhino/interface/hbase'
 require 'rhino/interface/htable'
 require 'rhino/interface/scanner'
-
-# require 'rhino/rest/xml_decoder'
-# require 'rhino/rest/htable'
-# require 'rhino/rest/scanner'
 
 require 'thrift/transport/tsocket.rb'
 require 'thrift/protocol/tbinaryprotocol.rb'
