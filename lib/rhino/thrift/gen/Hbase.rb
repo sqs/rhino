@@ -8,7 +8,7 @@ require 'thrift/protocol/tprotocol'
 require 'thrift/thrift'
 require 'rhino/thrift/gen/Hbase_types'
 
-                module Apache
+                module Apache#:nodoc: all
                   module Hadoop
                     module Hbase
                       module Thrift
