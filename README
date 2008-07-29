@@ -34,7 +34,7 @@ Once you have installed HBase and Thrift, start HBase, then start the Thrift ser
   bin/start-hbase.sh
   bin/hbase thrift start
   
-Both servers need to be running to use Rhino. Occasionally, the Thrift server will be unable to connect to HBase. In that case, stop the Thrift server (ctrl-C), stop the HBase server (+bin/stop-hbase.sh+), and then rerun the above command to restart both. To verify that HBase is running, try running the HBase shell (+bin/hbase shell+).
+Both servers need to be running to use Rhino. Occasionally, the Thrift server will be unable to connect to HBase. In that case, stop the Thrift server (ctrl-C), stop the HBase server (<tt>bin/stop-hbase.sh</tt>), and then rerun the above command to restart both. To verify that HBase is running, try running the HBase shell (<tt>bin/hbase shell</tt>).
 
 === Connect to HBase
 
