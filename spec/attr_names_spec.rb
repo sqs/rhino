@@ -53,6 +53,12 @@ describe Rhino::AttrNames do
     it "should reject nonexistent columns" do
       Page.determine_attribute_name(:doesnt_exist).should == nil
     end
+    
+    describe "when handling defined aliases" do
+      it "should determine the dealiased name of aliases" do
+        Page.determine_attribute_name(:author).should == 'meta:author'
+      end
+    end
   end
   
   describe "when testing the validity of attribute names" do
@@ -77,6 +83,10 @@ describe Rhino::AttrNames do
   
     it "should not approve non-fully-qualified column family names" do
       Page.is_valid_attr_name?("meta").should == false
+    end
+    
+    it "should reject aliases" do
+      Page.is_valid_attr_name?("author:").should == false
     end
   end
 

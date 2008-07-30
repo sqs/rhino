@@ -19,3 +19,7 @@ def hie(obj)
   highlight obj.inspect
   exit!
 end
+
+def hr
+  highlight('-'*40)
+end

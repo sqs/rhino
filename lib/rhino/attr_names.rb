@@ -19,18 +19,19 @@ module Rhino
         return [verb, attr_name]
       end
       
-      def determine_attribute_name(attr_name_unknown_format)
-        attr_name_unknown_format = attr_name_unknown_format.to_s
-        return nil if !attr_name_unknown_format or attr_name_unknown_format.empty?
+      def determine_attribute_name(attr_name)
+        debug("   determine_attribute_name(#{attr_name.inspect})")
         
-        # the attr name could either be 'meta:author'-style or 'meta_author'-style
-        # we are not sure yet - thus the "unknown format" name
-        if self.is_valid_attr_name?(attr_name_unknown_format)
+        attr_name = attr_name.to_s
+        return nil if !attr_name or attr_name.empty?
+        
+        if self.is_valid_attr_name?(attr_name)
           # it is in 'meta:author'-style and thus already a valid attr name, so no need to change it
-          return attr_name_unknown_format
+          return attr_name
         else
           # it is in 'meta_author'-style, so we need to convert it
-          attr_name = underscore_name_to_attr_name(attr_name_unknown_format)
+          attr_name = underscore_name_to_attr_name(attr_name)
+          attr_name = self.dealias(attr_name)
           if is_valid_attr_name?(attr_name)
             return attr_name
           else
@@ -43,7 +44,6 @@ module Rhino
       # Determines whether <tt>attr_name</tt> is a valid column family or column, or a defined alias.
       def is_valid_attr_name?(attr_name)
         return false if attr_name.nil? or attr_name == "" or !attr_name.include?(':')
-        attr_name = dealias(attr_name)
                 
         column_family, column = attr_name.split(':', 2)
         #TODO: should this check for illegal characters in the column name here as well?

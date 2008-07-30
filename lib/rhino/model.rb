@@ -121,20 +121,17 @@ module Rhino
     
     def set_attribute(attr_name, value)
       debug("Model#set_attribute(#{attr_name.inspect}, #{value.inspect})")
-      attr_name = self.class.dealias(attr_name)
       @data[attr_name] = value
     end
     
     def get_attribute(attr_name)
       debug("Model#get_attribute(#{attr_name.inspect}) => #{data[attr_name].inspect}")
-      attr_name = self.class.dealias(attr_name)
       @data[attr_name]
     end
     
     # If <tt>attr_name</tt> is a column family, nulls out the value. If <tt>attr_name</tt> is a column, removes the column from the row.
     def delete_attribute(attr_name)
       debug("Model#delete_attribute(#{attr_name.inspect})")
-      attr_name = self.class.dealias(attr_name)
       set_attribute(attr_name, nil)
     end
     
