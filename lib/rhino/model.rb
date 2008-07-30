@@ -133,17 +133,7 @@ module Rhino
     def delete_attribute(attr_name)
       debug("Model#delete_attribute(#{attr_name.inspect})")
       attr_name = self.class.dealias(attr_name)
-      # TODO: this has problems if the column name has a : in it other than between c.f. and column name
-      is_column_family = !attr_name[0..-2].include?(':')
-      if is_column_family
-        set_attribute(attr_name, nil)
-      else
-        # TODO: this only sets it to nil, it doesn't actually remove the column. that's because I need to find a way to signal
-        # that the column should be removed, but @data.delete(attr_name) will also mean that #save doesn't update it, since
-        # it isn't in @data.keys.
-        # TODO: test this all - how does setting nil work with versioning (old versions still exist, I presume, etc.)
-        set_attribute(attr_name, nil)
-      end
+      set_attribute(attr_name, nil)
     end
     
     def columns
