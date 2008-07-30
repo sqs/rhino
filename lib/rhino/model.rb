@@ -73,6 +73,8 @@ module Rhino
     
     extend Rhino::Aliases::ClassMethods
     
+    extend Rhino::AttrNames::ClassMethods
+    
     def initialize(key, data={}, metadata={}, opts={})
       debug("Model#initialize(#{key.inspect}, #{data.inspect}, #{metadata.inspect}, #{opts.inspect})")
       self.timestamp = metadata.delete(:timestamp)
@@ -168,9 +170,9 @@ module Rhino
     def data=(some_data)
       debug("Model#data=(#{some_data.inspect})")
       @data = {}
-      some_data.each do |attr_name,val|
-        attr_name = underscore_name_to_attr_name(attr_name)
-        raise "invalid attribute name for (#{attr_name.inspect},#{val.inspect})" unless self.class.is_valid_attr_name?(attr_name)
+      some_data.each do |data_key,val|
+        attr_name = self.class.determine_attribute_name(data_key)
+        raise(ArgumentError, "invalid attribute name for (#{data_key.inspect},#{val.inspect})") unless attr_name
         set_attribute(attr_name, val)
       end
       debug("Model#data == #{data.inspect}")
@@ -178,53 +180,26 @@ module Rhino
     end
 
     # Attempts to provide access to the data by attribute name.
-    #   page.meta_ # => page.data['meta:']
+    #   page.meta # => page.data['meta:']
     #   page.meta_author # => page.data['meta:author']
-    # TODO: should we keep using the trailing underscore methods? (like meta_)
     def method_missing(method, *args)
       debug("Model#method_missing(#{method.inspect}, #{args.inspect})")
-      method = method.to_s
-      is_setter_method = method[-1] == ?=
-      attr_name = if is_setter_method
-        underscore_name_to_attr_name(method[0..-2])
-      else
-        underscore_name_to_attr_name(method)
-      end
-      
-      if self.class.is_valid_attr_name?(attr_name)
-        debug("-> Rhino::Model#method_missing(...): attr_name=#{attr_name.inspect}")
-        if is_setter_method
-          set_attribute(attr_name, args[0])
-        else
+      if call_data = self.class.route_attribute_call(method)
+        verb, attr_name = *call_data
+        case verb
+        when :get
           get_attribute(attr_name)
+        when :set
+          set_attribute(attr_name, args[0])
         end
       else
-        raise ArgumentError, "method_missing(#{method.inspect}, #{args.inspect})"
+        super # pass it on to Object#method_missing, which will raise NoMethodError
       end
-    end
-    
-    # Converts underscored attribute names to the corresponding attribute name.
-    # "meta_author" => "meta:author"
-    # "title" => "title:"
-    # "title:" => "title:"
-    def underscore_name_to_attr_name(uname)
-      #TODO: this breaks if there is a _ in a column name as defined in the database
-      uname = uname.to_s
-      if uname.match('_')
-        uname.gsub('_', ':')
-      else
-        # don't put another : at the end if one already exists
-        uname.match(':') ? uname : "#{uname}:"
-      end
-    end
-    
-    
-    
+    end    
     
     #################
     # CLASS METHODS #
     #################
-    
     
     # Specifies the endpoint URL for the HBase REST API. This URL should end in a slash (e.g., "http://localhost:60010/api").
     # The connection is not actually "established", however, until +connection+ is called.
@@ -288,17 +263,6 @@ module Rhino
       define_method(column_family_name) do
         cf_class.connect(self, send("#{column_family_name}_family"))
       end
-    end
-    
-    # Determines whether <tt>attr_name</tt> is a valid column family or column, or a defined alias.
-    def Model.is_valid_attr_name?(attr_name)
-      debug("Model.is_valid_attr_name?(#{attr_name.inspect})")
-      return false if attr_name.nil? or attr_name == ""
-      attr_name = dealias(attr_name)
-                
-      column_family, column = attr_name.split(':', 2)
-      #TODO: should this check for illegal characters in the column name here as well?
-      return column_families.include?(column_family)
     end
     
     # Gets the class name, even if the class is within a module (ex: CoolModule::MyThing -> mythings)

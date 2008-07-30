@@ -59,27 +59,6 @@ describe Rhino::Model do
     end
   end
 
-  describe "when testing the validity of attribute names" do
-    it "should reject columns that aren't in a defined column family" do
-      Page.is_valid_attr_name?("addresses:home").should == false
-    end
-  
-    it "should reject blank attribute names" do
-      Page.is_valid_attr_name?("").should == false
-      Page.is_valid_attr_name?(nil).should == false
-    end
-  
-    it "should approve column families" do
-      Page.is_valid_attr_name?("meta:").should == true
-      Page.is_valid_attr_name?("title:").should == true
-    end
-  
-    it "should approve columns underneath existing column families" do
-      Page.is_valid_attr_name?("meta:author").should == true
-      Page.is_valid_attr_name?("title:asdf").should == true
-    end
-  end
-
   describe "when working with a row" do
     before do
       @page_key = "an.example.com"
