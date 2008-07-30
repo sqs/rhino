@@ -73,15 +73,11 @@ module Rhino
       return find(key)
     end
     
+    
     def self.belongs_to(containing_class_name)
       debug("#{self.class.name} belongs_to #{containing_class_name}")
-      #define_method(containing_class_name) { self.class.row }
-      # TODO: this is the only thing keeping #row around, which is undesirable - why can't the above define_method call work instead?
-      instance_eval { alias_method containing_class_name, :row }
-    end
-    
-    def row
-      self.class.row
+      # for the Page example, this would define Cell#page
+      define_method(containing_class_name) { self.class.row }
     end
     
     def self.each
@@ -107,7 +103,7 @@ module Rhino
         
     def key=(new_key)
       debug("#{self.class.name}#key= called, going to move value from #{attr_name} to :#{new_key}")
-      row.delete_attribute(attr_name)
+      self.class.row.delete_attribute(attr_name)
       @key = new_key
       # after setting @key, attr_name will have changed to the new full column name, so #write will write the right cell
       write 

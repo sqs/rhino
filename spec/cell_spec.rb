@@ -91,8 +91,8 @@ describe Rhino::Cell do
       @page.links.find('com.example.an/path').page.should == @page
     end
     
-    it "should allow retrieval of the containing model by the generic accessor #row" do
-      @page.links.find('com.example.an/path').row.should == @page
+    it "should allow retrieval of the containing model row by #class.row" do
+      @page.links.find('com.example.an/path').class.row.should == @page
     end
   
     describe "adding objects" do
