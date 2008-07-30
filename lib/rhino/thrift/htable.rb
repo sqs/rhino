@@ -48,12 +48,6 @@ module Rhino
       def put(key, data, is_new_record=false, timestamp=nil)
         timestamp = timestamp.to_i if timestamp
         
-        if false#is_new_record
-          # mutateRow won't work if there is no row, so make a row with an empty val if there was no row before
-          # TODO: should probably just write the actual title and omit it from the mutations to avoid writing placeholder vals
-          hbase.put(table_name, key, "title:", "PLACEHOLDER")
-        end
-        
         mutations = data.collect do |col,val|
           # if the value is nil, that means we are deleting that cell
           mutation_data = {:column=>col}

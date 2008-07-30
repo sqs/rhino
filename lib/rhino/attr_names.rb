@@ -46,7 +46,6 @@ module Rhino
         return false if attr_name.nil? or attr_name == "" or !attr_name.include?(':')
                 
         column_family, column = attr_name.split(':', 2)
-        #TODO: should this check for illegal characters in the column name here as well?
         return column_families.include?(column_family)
       end
     

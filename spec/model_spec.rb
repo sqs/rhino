@@ -1,5 +1,5 @@
 require File.dirname(__FILE__) + '/spec_helper.rb'
-#require 'spec/fixtures/pages' # TODO: get real fixtures!!
+# TODO: get real fixtures!!
 
 describe Rhino::Model do
   after do
@@ -87,10 +87,10 @@ describe Rhino::Model do
       @page.contents.should == nil
     end
     
-    it "should remove columns entirely when they are deleted" do
+    it "should null column values when they are deleted" do
+      # TODO: change this behavior so that it entirely deletes the attribute
       @page.meta_author = 'John'
       @page.delete_attribute('meta:author')
-      # TODO: this only tests whether the value is nil, should test for existence of column
       @page.meta_author.should == nil
     end
   
@@ -188,7 +188,6 @@ describe Rhino::Model do
     end
     
     it "should create if find_or_create is called and the row does NOT exist" do
-      # TODO: get some sort of real rollbacks so that tests don't affect the data
       if existing_page = Page.find('the-page')
         existing_page.destroy
       end

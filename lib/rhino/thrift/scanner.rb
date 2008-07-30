@@ -16,7 +16,6 @@ module Rhino
       end
       
       def open_scanner
-        # TODO: replace title: with actual columns
         @scanner = htable.hbase.scannerOpen(htable.table_name, @opts[:start], @opts[:columns])
       end
       

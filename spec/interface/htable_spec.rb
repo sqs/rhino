@@ -16,7 +16,7 @@ describe Rhino::Interface::HTable do
     end
     
     it "should retrieve the timestamp" do
-      # TODO: don't know how to find the timestamp of a row that's been retrieved!
+      # TODO: patch hbase to return timestamps when getRow is called
       # i dont think it's possible using the current thrift api, but it is possible from ruby
       # in hbase-trunk/bin/HBase.rb
       pending
