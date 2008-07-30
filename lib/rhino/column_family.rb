@@ -45,9 +45,8 @@ module Rhino
     # Returns the name of the column not including the name of its family. If you want the full name of the column, including the column
     # family name, use +column_full_names+.
     #   row.column_names # => ['english', 'french', 'spanish']
-    # TODO: the #split will cause a problem with column names like links:com.google/search/why:hello (with another colon)
     def column_names
-      column_full_names.collect { |column_full_name| column_full_name.split(':')[1] }
+      column_full_names.collect { |column_full_name| column_full_name.split(':', 2)[1] }
     end
   end
 end
