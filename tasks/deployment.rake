@@ -1,20 +1,25 @@
-require 'rake/rdoctask'
+namespace "doc" do
+  desc "Generate RDoc docs"
+  task :generate do
+    # Using rake/rdoctask invoked old rdoc 1.x for some reason, but this invokes rdoc 2.x
+    sh "rdoc --all --title 'Rhino - Ruby HBase ORM' --line-numbers --inline-source --force-update --all --charset utf-8 --main README README lib/"
+  end
 
-Rake::RDocTask.new { |rdoc|
-  rdoc.rdoc_dir = 'doc'
-  rdoc.title    = "Rhino - Ruby HBase ORM"
-  rdoc.options << '--line-numbers' << '--inline-source' << '-A cattr_accessor=object'
-  rdoc.options << '--charset' << 'utf-8'
-  rdoc.template = "#{ENV['template']}.rb" if ENV['template']
-  rdoc.rdoc_files.include('README', 'CHANGELOG')
-  rdoc.rdoc_files.include('lib/**/*.rb')
-  #rdoc.rdoc_files.exclude('lib/active_record/vendor/*')
-  #rdoc.rdoc_files.include('dev-utils/*.rb')
-}
-
-__END__
-# old task
-desc "build rdoc documentation"
-task :doc do
-  sh "rdoc --all --title 'Rhino Documentation' --force-update --inline-source --main README README lib/ MIT-LICENSE CHANGELOG"
+  desc "Upload docs to site"
+  task :upload do
+    sh "tar czfv rhino-rdoc.tgz doc/"
+    puts
+    puts "Going to upload..."
+    puts
+    sh "scp rhino-rdoc.tgz cardinal.stanford.edu:WWW/rhino/"
+    sh "ssh cardinal.stanford.edu 'cd WWW/rhino;tar xzfv rhino-rdoc.tgz'"
+    sh "rm rhino-rdoc.tgz"
+    puts
+    puts "Upload complete"
+  end
+  
+  desc "Generate & upload"
+  task :update=>[:generate, :upload]
 end
+
+
