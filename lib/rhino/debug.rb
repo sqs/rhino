@@ -23,3 +23,7 @@ end
 def hr
   highlight('-'*40)
 end
+
+def hi(obj)
+  highlight(obj.inspect)
+end
