@@ -13,8 +13,7 @@ describe Rhino::Cell do
     end
   
     it "should return a list of objects that it has_many of" do
-      running "qwerf" do
-      @page.links.keys.sort.should == %w(com.example.an/path com.google.www/search);end
+      @page.links.keys.sort.should == %w(com.example.an/path com.google.www/search)
     end
     
     it "should allow retrieval by key" do
