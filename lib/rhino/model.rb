@@ -24,7 +24,7 @@ module Rhino
   #
   # == Retrieving and updating existing rows
   # Currently, you can only retrieve existing rows by key or by both key and timestamp (see below).
-  #   page = Page.find('yahoo.com')
+  #   page = Page.get('yahoo.com')
   #   page.title = "Yahoo! version 2.0"
   #   page.save
   # 
@@ -41,19 +41,19 @@ module Rhino
   #   newer_page = Page.create('google.com', {:title=>'newer google'}, {:timestamp=>a_week_ago})
   #   older_page = Page.create('google.com', {:title=>'older google'}, {:timestamp=>a_month_ago})
   #   
-  #   # now you can find() by the timestamps you just set
-  #   Page.find('google.com', :timestamp=>a_week_ago).title # => "newer google"
-  #   Page.find('google.com', :timestamp=>a_month_ago).title # => "older google"
+  #   # now you can get() by the timestamps you just set
+  #   Page.get('google.com', :timestamp=>a_week_ago).title # => "newer google"
+  #   Page.get('google.com', :timestamp=>a_month_ago).title # => "older google"
   #
   # If no timestamp is specified when retrieving rows, the most recent row will be returned.
   # 
-  #   page = Page.find('google.com')
+  #   page = Page.get('google.com')
   #   page.title # => 'newer google'
   #
   # If a timestamp is specified that does not match any rows of that key in the database, <tt>nil</tt> is returned.
   #
   #   three_days_ago = Time.now - 3 * 24 * 3600
-  #   Page.find('google.com', :timestamp=>three_days_ago) # => nil
+  #   Page.get('google.com', :timestamp=>three_days_ago) # => nil
   #
   # == Accessing data on rows
   # A row's attributes may be accessed or written as follows.
@@ -278,25 +278,21 @@ module Rhino
       obj
     end
     
-    def Model.find_or_create(key, data={}, metadata={})
-      find(key) || create(key, data, metadata)
-    end
-    
-    def Model.find(key, find_opts={})
-      debug("Model.find(#{key.inspect}, #{find_opts.inspect})")
+    def Model.get(key, get_opts={})
+      debug("Model.get(#{key.inspect}, #{get_opts.inspect})")
       
       # handle opts
-      find_opts.keys.each { |fo_key| raise ArgumentError, "invalid key for find opts: #{fo_key.inspect}" unless %w(columns timestamp).include?(fo_key.to_s) }
-      raise ArgumentError, "columns key for find opts is unimplemented" if find_opts.keys.include?(:columns)
-      timestamp = find_opts[:timestamp]
-      columns = if find_opts.include?(:columns)
-        # convert like: %w(col1 col2 col3) => "col1;col2;col3"
-        find_opts.delete[:columns].collect(&:to_s).join(';')
+      get_opts.keys.each { |fo_key| raise ArgumentError, "invalid key for get opts: #{fo_key.inspect}" unless %w(columns timestamp).include?(fo_key.to_s) }
+      raise ArgumentError, "columns key for get opts is unimplemented" if get_opts.keys.include?(:columns)
+      timestamp = get_opts[:timestamp]
+      columns = if get_opts.include?(:columns)
+        # convert like: %w(col1 col2 col3) => "col1;col2;col3" #TODO2 what is this?
+        get_opts.delete[:columns].collect(&:to_s).join(';')
       else
         nil
       end
       
-      # find the row
+      # get the row
       begin
         data = htable.get(key, :timestamp=>timestamp, :columns=>columns)
         metadata = {:timestamp=>timestamp, :columns=>columns}

@@ -20,17 +20,17 @@ describe Rhino::Model do
     end
   end
 
-  describe "when finding by key" do
+  describe "when getting by key" do
     before do
       Page.create('example.com', {:title=>'hello'})
     end
   
-    it "should find by key" do
-      Page.find('example.com').should_not == nil
+    it "should get by key" do
+      Page.get('example.com').should_not == nil
     end
   
-    it "should not find by non-existent keys" do
-      Page.find("this is a non-existent key").should == nil
+    it "should not get by non-existent keys" do
+      Page.get("this is a non-existent key").should == nil
     end
   end
   
@@ -47,7 +47,7 @@ describe Rhino::Model do
       @key = 'some.example.com'
       @page_data = {'title:'=>'hello', 'contents:'=>'hi there', 'meta:author'=>'Alice'}
       Page.create(@key, @page_data)
-      @page = Page.find(@key)
+      @page = Page.get(@key)
     end
     
     it "should have a data hash equivalent to that with which it was created" do
@@ -55,7 +55,7 @@ describe Rhino::Model do
     end
       
     after do
-      Page.find(@key).destroy
+      Page.get(@key).destroy
     end
   end
 
@@ -69,7 +69,7 @@ describe Rhino::Model do
     end
     
     after do
-      Page.find(@page_key).destroy
+      Page.get(@page_key).destroy
     end
   
     it "should make its attributes accessible as methods" do
@@ -99,7 +99,7 @@ describe Rhino::Model do
       @page.meta_author = author
       @page.meta_author.should == author
       @page.save
-      Page.find(@page.key).meta_author.should == author
+      Page.get(@page.key).meta_author.should == author
     end
   
     it "should make its row key accessible as a method" do
@@ -128,7 +128,7 @@ describe Rhino::Model do
       @page.title = new_title
       @page.title.should == new_title
       @page.save
-      Page.find(@some_key).title.should == new_title
+      Page.get(@some_key).title.should == new_title
       @page.title = prev_title
       @page.save
       @page.title.should == prev_title
@@ -140,7 +140,7 @@ describe Rhino::Model do
     
     it "should not set was_new_record to true if it previously was not a new record" do
       Page.new('a', :title=>'b').save
-      page = Page.find('a')
+      page = Page.get('a')
       page.title = 'c'
       page.save
       page.was_new_record?.should == false
@@ -179,19 +179,7 @@ describe Rhino::Model do
   describe "when creating a new row" do
     it "should save the data" do
       page = Page.create('a-page', {:title=>'welcome', :contents=>'hello'})
-      Page.find('a-page').title.should == 'welcome'
-    end
-    
-    it "should not create it if find_or_create is called and the row exists" do
-      page = Page.create('some-page', {:title=>'some page'})
-      Page.find_or_create('some-page', {:title=>'different title'}).title.should == 'some page'
-    end
-    
-    it "should create if find_or_create is called and the row does NOT exist" do
-      if existing_page = Page.find('the-page')
-        existing_page.destroy
-      end
-      Page.find_or_create('the-page', {:title=>'my title'}).title.should == 'my title'
+      Page.get('a-page').title.should == 'welcome'
     end
   end
 
@@ -204,9 +192,9 @@ describe Rhino::Model do
     end
   
     it "should delete the row" do
-      Page.find(@page_key).should_not == nil
+      Page.get(@page_key).should_not == nil
       @page.destroy
-      Page.find(@page_key).should == nil
+      Page.get(@page_key).should == nil
     end
   end
 
@@ -218,26 +206,27 @@ describe Rhino::Model do
       @even_longer_ago = Time.now - 30 * 24 * 3600
     end
   
-    # it "should find normally if the timestamp is nil" do
-    #   the_page = Page.find('example.com', :timestamp=>nil)
-    #   the_page.should == Page.find('example.com')
-    #   the_page.class.should == Page
-    # end
+    it "should get normally if the timestamp is nil" do
+      pending
+      the_page = Page.get('example.com', :timestamp=>nil)
+      the_page.should == Page.get('example.com')
+      the_page.class.should == Page
+    end
   
-    it "should fail to find if the supplied timestamp doesn't match a row" do
+    it "should fail to get if the supplied timestamp doesn't match a row" do
       nonexistent_time = Time.at(0)
-      Page.find('example.com', :timestamp=>nonexistent_time).should == nil
+      Page.get('example.com', :timestamp=>nonexistent_time).should == nil
     end
   
     it "should save and retrieve a row by timestamp" do
       key = 'google.com'
       p1 = Page.create(key, {:title=>'google a while ago'}, {:timestamp=>@a_while_ago})
       p2 = Page.create(key, {:title=>'google even longer ago'}, {:timestamp=>@even_longer_ago})
-      Page.find(key, :timestamp=>@a_while_ago).title.should == 'google a while ago'
-      Page.find(key, :timestamp=>@even_longer_ago).title.should == 'google even longer ago'
+      Page.get(key, :timestamp=>@a_while_ago).title.should == 'google a while ago'
+      Page.get(key, :timestamp=>@even_longer_ago).title.should == 'google even longer ago'
     end
     
-    it "should find the latest row if no timestamp is specified"
+    it "should get the latest row if no timestamp is specified"
   
   end
 
@@ -248,30 +237,30 @@ describe Rhino::Model do
   describe "when testing for equality between two rows" do
     it "should find two rows equal if their key, data, and timestamp are the same" do
       Page.create('a', :title=>'b')
-      Page.find('a').should == Page.find('a')
+      Page.get('a').should == Page.get('a')
     end
     
-    it "should find two rows equal even if one was create'd and one was find'ed" do
+    it "should find two rows equal even if one was create'd and one was get'ed" do
       # in this case, the only difference is that page1 (created) has @was_new_record=true, while page2 doesn't
       # that should not matter in a test of equality
       page1 = Page.create('a', :title=>'b', 'links:c'=>'d')
-      page2 = Page.find('a')
+      page2 = Page.get('a')
       page1.should == page2
     end
     
     it "should find two rows nonequal if their keys are not the same" do
       pending "can't yet change names of keys - and maybe this will never be implemented b/c it won't make sense"
       # Page.create('a', :title=>'b', 'links:c'=>'d')
-      # page1 = Page.find('a')
-      # page2 = Page.find('a')
+      # page1 = Page.get('a')
+      # page2 = Page.get('a')
       # page2.key = 'a-different-key'
       # page1.should_not == page2
     end
     
     it "should find two rows nonequal if their data are not the same" do
       Page.create('a', :title=>'b', 'links:c'=>'d')
-      page1 = Page.find('a')
-      page2 = Page.find('a')
+      page1 = Page.get('a')
+      page2 = Page.get('a')
       page2.title = 'a-different-title'
       page1.should_not == page2
     end

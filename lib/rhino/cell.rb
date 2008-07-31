@@ -26,9 +26,9 @@ module Rhino
       @column_family.column_names
     end
     
-    def self.find(key)
+    def self.get(key)
       if key.match(/^\d+$/)
-        raise "find cell by index is unimplemented"
+        raise "get cell by index is unimplemented"
       else
         # consider nil values as nonexistent, because they could refer to cells that will be deleted on the next #save
         # but haven't (a nil value is the marker that it will be deleted)
@@ -70,7 +70,7 @@ module Rhino
     def self.add(key, contents)
       cell = new(key, contents)
       cell.write
-      return find(key)
+      return get(key)
     end
     
     
@@ -82,7 +82,7 @@ module Rhino
     
     def self.each
       keys.each do |key|
-        yield(find(key))
+        yield(get(key))
       end
     end
     

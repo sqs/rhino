@@ -18,8 +18,8 @@ describe Rhino::Cell do
     end
     
     it "should allow retrieval by key" do
-      @page.links.find('com.example.an/path').contents.should == 'Click now'
-      @page.links.find('com.google.www/search').key.should == 'com.google.www/search' 
+      @page.links.get('com.example.an/path').contents.should == 'Click now'
+      @page.links.get('com.google.www/search').key.should == 'com.google.www/search' 
     end
         
     describe "when looping over the collection" do
@@ -32,9 +32,9 @@ describe Rhino::Cell do
     
     describe "when changing attributes" do
       def change_the_key
-        @page.links.find('com.google.www/search').key = 'com.google.www/another/path'
+        @page.links.get('com.google.www/search').key = 'com.google.www/another/path'
         @page.save
-        @reloaded_page_link_keys = Page.find(@key).links.keys
+        @reloaded_page_link_keys = Page.get(@key).links.keys
       end
     
       it "should save key changes propagated by the contained model" do
@@ -50,30 +50,30 @@ describe Rhino::Cell do
       end
     
       it "should save contents changes propagated by the contained model" do
-        goog_link = @page.links.find('com.google.www/search')
+        goog_link = @page.links.get('com.google.www/search')
         goog_link.contents = 'Google'
         goog_link.save
-        Page.find(@key).links.find('com.google.www/search').contents.should == 'Google'
+        Page.get(@key).links.get('com.google.www/search').contents.should == 'Google'
       end
     end
     
     
     it "should not be a new record after it has been saved" do
       pending
-      @page.links.find('com.google.www/search').new_record?.should == false
+      @page.links.get('com.google.www/search').new_record?.should == false
     end
     
     it "should be a new record before it has been saved" do
       pending
       @page.set_attribute('links:com.apple', 'New link')
-      @page.links.find('com.apple').new_record?.should == true
+      @page.links.get('com.apple').new_record?.should == true
     end
     
     describe "when subclassing Cell" do
-      it { @page.links.find('com.example.an/path').class.should == Link }
+      it { @page.links.get('com.example.an/path').class.should == Link }
       
       it "should allow custom methods to be defined on the subclass" do
-        @page.links.find('com.example.an/path').url.should == 'http://an.example.com/path'
+        @page.links.get('com.example.an/path').url.should == 'http://an.example.com/path'
       end
     end
     
@@ -83,40 +83,40 @@ describe Rhino::Cell do
       end
       
       it "should not confuse cells from different subclasses" do
-        @page.links.find('com.apple/logo.png').should == nil
-        @page.images.find('com.google.www/search').should == nil
+        @page.links.get('com.apple/logo.png').should == nil
+        @page.images.get('com.google.www/search').should == nil
       end
     end
     
     it "should allow retrieval of the containing model by the name specified in belongs_to" do
-      @page.links.find('com.example.an/path').page.should == @page
+      @page.links.get('com.example.an/path').page.should == @page
     end
     
     it "should allow retrieval of the containing model row by #class.row" do
-      @page.links.find('com.example.an/path').class.row.should == @page
+      @page.links.get('com.example.an/path').class.row.should == @page
     end
   
     describe "adding objects" do
       it "should allow a new cell to be added" do
         @page.links.create('com.yahoo', "Yahoo")
-        the_link = @page.links.find('com.yahoo')
+        the_link = @page.links.get('com.yahoo')
         the_link.contents.should == 'Yahoo'
       end
       
       it "should save the row when 'create' is used" do
         @page.links.create('com.yahoo', 'Yahoo')
-        Page.find(@key).links.find('com.yahoo').contents.should == 'Yahoo'
+        Page.get(@key).links.get('com.yahoo').contents.should == 'Yahoo'
       end
       
       it "should not save the row when 'add' is used" do
         @page.links.add('com.yahoo', 'Yahoo')
-        Page.find(@key).links.find('com.yahoo').should == nil
+        Page.get(@key).links.get('com.yahoo').should == nil
       end
       
       it "should allow multiple cells to be added by hash" do
         @page.links.create_multiple('com.yahoo'=>'Yahoo', 'com.cisco'=>'Cisco')
-        @page.links.find('com.yahoo').contents.should == 'Yahoo'
-        @page.links.find('com.cisco').contents.should == 'Cisco'
+        @page.links.get('com.yahoo').contents.should == 'Yahoo'
+        @page.links.get('com.cisco').contents.should == 'Cisco'
       end
       
       it "should determine whether a cell is a new_record?"
@@ -133,15 +133,15 @@ describe Rhino::Cell do
     describe "when deleting" do
       it "should allow deletion from the list of objects" do
         #'links:com.google.www/search'=>'Search engine'
-        @page.links.find('com.google.www/search').contents.should == 'Search engine'
-        @page.links.find('com.google.www/search').destroy
-        @page.links.find('com.google.www/search').should == nil
+        @page.links.get('com.google.www/search').contents.should == 'Search engine'
+        @page.links.get('com.google.www/search').destroy
+        @page.links.get('com.google.www/search').should == nil
       end
       
       it "should immediately commit deletes to the database" do
-        @page.links.find('com.google.www/search').contents.should == 'Search engine'
-        @page.links.find('com.google.www/search').destroy
-        Page.find(@key).links.find('com.google.www/search').should == nil
+        @page.links.get('com.google.www/search').contents.should == 'Search engine'
+        @page.links.get('com.google.www/search').destroy
+        Page.get(@key).links.get('com.google.www/search').should == nil
       end
     end
   end
