@@ -57,6 +57,12 @@ describe Rhino::Interface::HTable do
     end
   end
   
+  describe "when putting rows" do
+    it "should require that column values be strings" do
+      lambda { @page_htable.put('a', {'title:'=>Object}) }.should raise_error(ArgumentError)
+    end
+  end
+  
   describe "when putting existing rows" do
     it "should delete cells that previously existed if their value is changed to nil" do
       key = 'example.com'

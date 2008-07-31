@@ -53,6 +53,7 @@ module Rhino
           if val.nil?
             mutation_data[:isDelete] = true
           else
+            raise(ArgumentError, "column values must be strings or nil") unless val.is_a?(String)
             mutation_data[:value] = val
           end
           Apache::Hadoop::Hbase::Thrift::Mutation.new(mutation_data)
