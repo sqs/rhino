@@ -279,12 +279,23 @@ module Rhino
     end
     
     # Scans the table with +opts+ (if provided) and returns an array of each row that is returned by the scanner.
-    # When called without options, this method returns every row.
+    # See +scan+ for options.
     def Model.get_all(opts={})
       scan(opts).collect
     end
     
     # Returns a Scanner that will iterate through the rows, according to the arguments.
+    # ==== Options
+    # * <tt>:start_row => 'row key'</tt> - Return only rows whose keys, in lexical order, occur at or after this row key.
+    #   The row specified by the key supplied in <tt>:start_row</tt>, if it exists, will be returned.
+    #   This option can be combined with <tt>:stop_row</tt>.
+    # * <tt>:stop_row => 'row key'</tt> - Return only rows whose keys, in lexical order, occur before this row key.
+    #   The row specified by the key supplied in <tt>:stop_row</tt>, if it exists, will NOT be returned.
+    #   This option can be combined with <tt>:start_row</tt>.
+    # ==== Notes
+    # Note that <tt>:start_row</tt> is inclusive of the start row key, while <tt>:stop_row</tt> is exclusive.
+    # For example, with row keys A, B, and C, starting at B would return B and C. If the stop row were C, however,
+    # the Scanner would only return A and B.
     def Model.scan(opts={})
       Rhino::Scanner.new(self, opts)
     end
