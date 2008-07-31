@@ -285,17 +285,11 @@ module Rhino
       get_opts.keys.each { |fo_key| raise ArgumentError, "invalid key for get opts: #{fo_key.inspect}" unless %w(columns timestamp).include?(fo_key.to_s) }
       raise ArgumentError, "columns key for get opts is unimplemented" if get_opts.keys.include?(:columns)
       timestamp = get_opts[:timestamp]
-      columns = if get_opts.include?(:columns)
-        # convert like: %w(col1 col2 col3) => "col1;col2;col3" #TODO2 what is this?
-        get_opts.delete[:columns].collect(&:to_s).join(';')
-      else
-        nil
-      end
       
       # get the row
       begin
-        data = htable.get(key, :timestamp=>timestamp, :columns=>columns)
-        metadata = {:timestamp=>timestamp, :columns=>columns}
+        data = htable.get(key, :timestamp=>timestamp)
+        metadata = {:timestamp=>timestamp}
         debug("-> found [key=#{key.inspect}, data=#{data.inspect}]")
         load(key, data, metadata)
       rescue Rhino::Interface::HTable::RowNotFound
