@@ -22,7 +22,6 @@ module Rhino
       
         columns = Array(opts.delete(:columns)).compact
 
-        # TODO: do argument checking of timestamp - must be an integer (or nil, in which case it is not used)
         timestamp = opts.delete(:timestamp)
         timestamp = timestamp.to_i if timestamp
         
