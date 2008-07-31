@@ -100,7 +100,7 @@ module Rhino
     
     def destroy
       debug("Model#destroy() [key=#{key.inspect}]")
-      self.class.htable.delete(key)
+      self.class.htable.delete_row(key)
     end
     
     def data
@@ -320,7 +320,7 @@ module Rhino
     end
     
     def Model.delete_all
-      htable.delete_all
+      htable.delete_all_rows
     end
   end
 end

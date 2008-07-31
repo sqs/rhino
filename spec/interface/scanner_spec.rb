@@ -10,7 +10,7 @@ describe Rhino::Interface::Scanner do
   end
   
   after do
-    @page_htable.delete_all
+    @page_htable.delete_all_rows
   end
   
   describe "scanning all rows" do
@@ -44,7 +44,7 @@ describe Rhino::Interface::Scanner do
   
   describe "when no rows in the table exist" do
     before do
-      @page_htable.delete_all
+      @page_htable.delete_all_rows
     end
     
     it "should not raise an error" do

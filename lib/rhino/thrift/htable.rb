@@ -65,18 +65,15 @@ module Rhino
         end
       end
       
-      # Deletes the row specified by <tt>key</tt> from the database. If <tt>columns</tt> or <tt>timestamp</tt> are specified, ...
-      def delete(key, columns = nil, timestamp = nil)
-        # TODO: add support for column and timestamp deletions
-        if columns.nil? and timestamp.nil?
-          hbase.deleteAllRow(table_name, key)
-        end
+      # Deletes the row at +key+ from the table.
+      def delete_row(key)
+        hbase.deleteAllRow(table_name, key)
       end
       
       # Deletes all of the rows in a table.
-      def delete_all
+      def delete_all_rows
         scan.each do |row|
-          delete(row['key'])
+          delete_row(row['key'])
         end
       end
       

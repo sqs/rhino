@@ -7,7 +7,7 @@ describe Rhino::Interface::HTable do
   end
   
   after do
-    @page_htable.delete_all
+    @page_htable.delete_all_rows
   end
   
   describe "when getting rows" do
@@ -38,25 +38,23 @@ describe Rhino::Interface::HTable do
     
     it "should remove all rows" do
       @page_htable.get('a').should_not == nil
-      @page_htable.delete_all
+      @page_htable.delete_all_rows
       lambda { @page_htable.get('a') }.should raise_error(Rhino::Interface::HTable::RowNotFound)
       @page_htable.scan.collect.should == []
     end
   end
   
-  describe "when deleting single rows" do  
+  describe "when deleting entire rows" do  
     before do
       @some_key = 'some-key'
       @page_htable.put(@some_key, {'title:'=>'abc'})
     end
     
-    it "should remove all versions and columns when only key is specified and only one version exists" do
+    it "should delete the row" do
       @page_htable.get(@some_key).should_not == nil
-      @page_htable.delete(@some_key)
+      @page_htable.delete_row(@some_key)
       lambda { @page_htable.get(@some_key) }.should raise_error(Rhino::Interface::HTable::RowNotFound)
     end
-    
-    it "should remove all versions and columns when only key is specified and multiple versions exist"
   end
   
   describe "when putting existing rows" do
