@@ -13,7 +13,7 @@ describe Rhino::Interface::Scanner do
   end
   
   describe "using a non-constrained scanner" do
-    it "should find all rows" do
+    it "should return all rows" do
       row_titles = %w(abc bcd cde)
       row_keys = %w(a b c)
       rows = []
