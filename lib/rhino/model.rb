@@ -278,6 +278,17 @@ module Rhino
       obj
     end
     
+    # Scans the table with +opts+ (if provided) and returns an array of each row that is returned by the scanner.
+    # When called without options, this method returns every row.
+    def Model.get_all(opts={})
+      scan(opts).collect
+    end
+    
+    # Returns a Scanner that will iterate through the rows, according to the arguments.
+    def Model.scan(opts={})
+      Rhino::Scanner.new(self, opts)
+    end
+    
     def Model.get(key, get_opts={})
       debug("Model.get(#{key.inspect}, #{get_opts.inspect})")
       

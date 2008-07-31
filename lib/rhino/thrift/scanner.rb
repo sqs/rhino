@@ -8,15 +8,18 @@ module Rhino
       def initialize(htable, opts={})
         @htable = htable
         @opts = opts
-        @opts[:start] ||= ''
+        @opts[:start_row] ||= ''
         @opts[:columns] ||= self.htable.column_families
-        
         
         open_scanner
       end
       
       def open_scanner
-        @scanner = htable.hbase.scannerOpen(htable.table_name, @opts[:start], @opts[:columns])
+        @scanner = if @opts[:stop_row]
+          htable.hbase.scannerOpenWithStop(htable.table_name, @opts[:start_row], @opts[:stop_row], @opts[:columns])
+        else
+          htable.hbase.scannerOpen(htable.table_name, @opts[:start_row], @opts[:columns])
+        end
       end
       
       # Returns the next row in the scanner in the format specified below. Note that the row key is 'key', not 'key:'.
