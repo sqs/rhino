@@ -26,6 +26,7 @@ require 'rhino/version'
 require 'rhino/active_record_impersonation'
 
 RHINO_DEBUG = true unless defined?(RHINO_DEBUG)
+include Rhino::Debug
 
 module Rhino
   
