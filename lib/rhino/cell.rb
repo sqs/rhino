@@ -1,5 +1,7 @@
 module Rhino
   class Cell
+    extend Enumerable
+    
     def self.row=(a_row)
       @row = a_row
     end

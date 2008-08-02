@@ -27,6 +27,10 @@ describe Rhino::Cell do
         @page.links.each { |link| link_keys << link.key }
         link_keys.sort.should == %w(com.example.an/path com.google.www/search)
       end
+      
+      it "should allow collect and other Enumerable add-ins" do
+        @page.links.collect { |link| link.key }.sort.should == %w(com.example.an/path com.google.www/search)
+      end
     end
     
     describe "when changing attributes" do
