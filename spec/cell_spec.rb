@@ -28,7 +28,7 @@ describe Rhino::Cell do
         link_keys.sort.should == %w(com.example.an/path com.google.www/search)
       end
       
-      it "should allow collect and other Enumerable add-ins" do
+      it "should allow collect and other Enumerable mix-ins" do
         @page.links.collect { |link| link.key }.sort.should == %w(com.example.an/path com.google.www/search)
       end
     end
