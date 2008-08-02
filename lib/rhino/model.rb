@@ -152,15 +152,15 @@ module Rhino
           !comparison_object.new_record?)
     end
     
+    def key=(a_key)
+      @key = a_key
+    end
+    
     private
     
     attr_reader :opts
     def opts=(some_opts)
       @opts = some_opts
-    end
-    
-    def key=(a_key)
-      @key = a_key
     end
     
     # Data that is set here must have HBase-style keys (like {'meta:author'=>'John'}), not underscored keys {:meta_author=>'John'}.
