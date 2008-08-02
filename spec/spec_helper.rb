@@ -2,8 +2,6 @@ require "rubygems"
 require "spec"
 require File.expand_path(File.dirname(__FILE__) + "/../lib/rhino")
 
-include Rhino::Debug
-
 Rhino::Model.connect('localhost', 9090) unless Rhino::Model.connected?
 
 class Link < Rhino::Cell
