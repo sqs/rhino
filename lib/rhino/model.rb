@@ -227,10 +227,11 @@ module Rhino
       @htable ||= Rhino::ThriftInterface::HTable.new(hbase, table_name)
     end
     
-    def Model.column_families; @column_families ||= []; end
+    cattr_accessor :column_families
     
     def Model.column_family(name)
       name = name.to_s.gsub(':','')
+      self.column_families ||= []
       if column_families.include?(name)
         debug("column_family '#{name}' already defined for #{self.class.name}")
         column_families.delete(name)

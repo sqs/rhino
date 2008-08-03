@@ -292,4 +292,18 @@ describe Rhino::Model do
     
     it "should find two rows nonequal if their timestamps are not the same"
   end
+  
+  describe "when subclassing Model" do
+    before(:all) do
+      class SpecialPage < Page; @table_name = 'page'; def special?; true; end; end
+    end
+    
+    it "should have the same column families as the parent class" do
+      SpecialPage.column_families.should == ["title", "contents", "links", "meta", "images"]
+    end
+    
+    it "should have the methods defined on the subclass" do
+      SpecialPage.new('somespecialpage').special?.should == true
+    end
+  end
 end
