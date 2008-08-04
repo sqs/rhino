@@ -19,6 +19,8 @@ module Rhino
       def get(key, options = {})
         opts = DEFAULT_GET_OPTIONS.merge(options)
         debug("#{self.class.name}#get(#{key.inspect}, #{options.inspect})")
+        
+        raise(ArgumentError, "get requires a key") if key.nil? or key==''
       
         columns = Array(opts.delete(:columns)).compact
 

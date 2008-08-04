@@ -15,6 +15,11 @@ describe Rhino::Interface::HTable do
       lambda { @page_htable.get('this row key does not exist') }.should raise_error(Rhino::Interface::HTable::RowNotFound)
     end
     
+    it "should raise ArgumentError if nil or blank key is given" do
+      lambda { @page_htable.get('') }.should raise_error(ArgumentError)
+      lambda { @page_htable.get(nil) }.should raise_error(ArgumentError)
+    end
+    
     it "should retrieve the timestamp" do
       # TODO: patch hbase to return timestamps when getRow is called
       # i dont think it's possible using the current thrift api, but it is possible from ruby
