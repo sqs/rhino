@@ -29,16 +29,12 @@ module Rhino
     end
     
     def self.get(key)
-      if key.match(/^\d+$/)
-        raise "get cell by index is unimplemented"
+      # consider nil values as nonexistent, because they could refer to cells that will be deleted on the next #save
+      # but haven't (a nil value is the marker that it will be deleted)
+      if val = @row.get_attribute("#{@column_family_name}:#{key}")
+        new(key, val)
       else
-        # consider nil values as nonexistent, because they could refer to cells that will be deleted on the next #save
-        # but haven't (a nil value is the marker that it will be deleted)
-        if val = @row.get_attribute("#{@column_family_name}:#{key}")
-          new(key, val)
-        else
-          return nil
-        end
+        return nil
       end
     end
     
