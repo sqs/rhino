@@ -17,7 +17,6 @@ module Rhino
     def self.column_family_name; @column_family_name; end
     
     def self.connect(row, column_family)
-      #debug("Rhino::Cell#initialize(#{row.inspect}, #{@column_family.inspect})")
       self.row = row
       self.column_family = column_family
       self.column_family_name = @column_family.column_family_name

@@ -29,7 +29,6 @@ module Rhino
     attr_accessor :column_family_name
     
     def initialize(row, column_family_name)
-      debug("Rhino::ColumnFamily#initialize(#{row.inspect}, #{column_family_name.inspect})")
       @row = row
       self.column_family_name = column_family_name.to_s
     end
