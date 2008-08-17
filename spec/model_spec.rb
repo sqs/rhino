@@ -118,25 +118,6 @@ describe Rhino::Model do
       @page.new_record?.should == false
     end
   end
-  
-  describe "when changing the key of an existing row" do
-    before do
-      @page = Page.create('abc', {:title=>'old title'})
-    end
-    
-    it "should save under the new key" do
-      @page.key = 'xyz'
-      @page.title = 'new title'
-      @page.save
-      Page.get('xyz').title.should == 'new title'
-    end
-    
-    it "should keep the old data at the old key" do
-      @page.key = 'xyz'
-      @page.save
-      Page.get('abc').title.should == 'old title'
-    end
-  end
 
   describe "when saving a row" do
     before do
@@ -250,8 +231,8 @@ describe Rhino::Model do
     end
     
     it "should return its timestamp" do
-      Page.create('abc', {:title=>'hello'})
-      Page.get('abc').timestamp.should be_close((Time.now.to_f * 1000).to_i, 100)
+      Page.create('abc123', {:title=>'hello'})
+      Page.get('abc123').timestamp.should be_close((Time.now.to_f * 1000).to_i, 100)
     end
     
     it "should get the latest row if no timestamp is specified"
