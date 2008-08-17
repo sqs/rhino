@@ -5,7 +5,7 @@
 #
 
 require 'thrift/protocol/tprotocol'
-require 'rhino/thrift/gen/Hbase_types'
+require 'Hbase_types'
 
         module Apache
           module Hadoop

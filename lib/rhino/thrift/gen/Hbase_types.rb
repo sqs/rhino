@@ -10,6 +10,15 @@ module Apache
   module Hadoop
     module Hbase
       module Thrift
+                class TCell
+                  include ThriftStruct
+                  attr_accessor :value, :timestamp
+                  FIELDS = {
+                    1 => {:type => TType::STRING, :name => 'value'},
+                    2 => {:type => TType::I64, :name => 'timestamp'}
+                  }
+                end
+
                 class ColumnDescriptor
                   include ThriftStruct
                   attr_accessor :name, :maxVersions, :compression, :inMemory, :maxValueLength, :bloomFilterType, :bloomFilterVectorSize, :bloomFilterNbHashes, :blockCacheEnabled, :timeToLive
@@ -27,11 +36,15 @@ module Apache
                   }
                 end
 
-                class RegionDescriptor
+                class TRegionInfo
                   include ThriftStruct
-                  attr_accessor :startKey
+                  attr_accessor :startKey, :endKey, :id, :name, :version
                   FIELDS = {
-                    1 => {:type => TType::STRING, :name => 'startKey'}
+                    1 => {:type => TType::STRING, :name => 'startKey'},
+                    2 => {:type => TType::STRING, :name => 'endKey'},
+                    3 => {:type => TType::I64, :name => 'id'},
+                    4 => {:type => TType::STRING, :name => 'name'},
+                    5 => {:type => TType::BYTE, :name => 'version'}
                   }
                 end
 
@@ -54,12 +67,12 @@ module Apache
                   }
                 end
 
-                class ScanEntry
+                class TRowResult
                   include ThriftStruct
                   attr_accessor :row, :columns
                   FIELDS = {
                     1 => {:type => TType::STRING, :name => 'row'},
-                    2 => {:type => TType::MAP, :name => 'columns', :key => {:type => TType::STRING}, :value => {:type => TType::STRING}}
+                    2 => {:type => TType::MAP, :name => 'columns', :key => {:type => TType::STRING}, :value => {:type => TType::STRUCT, :class => TCell}}
                   }
                 end
 

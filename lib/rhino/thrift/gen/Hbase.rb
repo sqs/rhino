@@ -16,6 +16,52 @@ require 'rhino/thrift/gen/Hbase_types'
                           class Client
                             include ThriftClient
 
+                            def enableTable(tableName)
+                              send_enableTable(tableName)
+                              recv_enableTable()
+                            end
+
+                            def send_enableTable(tableName)
+                              send_message('enableTable', EnableTable_args, :tableName => tableName)
+                            end
+
+                            def recv_enableTable()
+                              result = receive_message(EnableTable_result)
+                              raise result.io unless result.io.nil?
+                              return
+                            end
+
+                            def disableTable(tableName)
+                              send_disableTable(tableName)
+                              recv_disableTable()
+                            end
+
+                            def send_disableTable(tableName)
+                              send_message('disableTable', DisableTable_args, :tableName => tableName)
+                            end
+
+                            def recv_disableTable()
+                              result = receive_message(DisableTable_result)
+                              raise result.io unless result.io.nil?
+                              return
+                            end
+
+                            def isTableEnabled(tableName)
+                              send_isTableEnabled(tableName)
+                              return recv_isTableEnabled()
+                            end
+
+                            def send_isTableEnabled(tableName)
+                              send_message('isTableEnabled', IsTableEnabled_args, :tableName => tableName)
+                            end
+
+                            def recv_isTableEnabled()
+                              result = receive_message(IsTableEnabled_result)
+                              return result.success unless result.success.nil?
+                              raise result.io unless result.io.nil?
+                              raise TApplicationException.new(TApplicationException::MISSING_RESULT, 'isTableEnabled failed: unknown result')
+                            end
+
                             def getTableNames()
                               send_getTableNames()
                               return recv_getTableNames()
@@ -178,22 +224,6 @@ require 'rhino/thrift/gen/Hbase_types'
                               return result.success unless result.success.nil?
                               raise result.io unless result.io.nil?
                               raise TApplicationException.new(TApplicationException::MISSING_RESULT, 'getRowTs failed: unknown result')
-                            end
-
-                            def put(tableName, row, column, value)
-                              send_put(tableName, row, column, value)
-                              recv_put()
-                            end
-
-                            def send_put(tableName, row, column, value)
-                              send_message('put', Put_args, :tableName => tableName, :row => row, :column => column, :value => value)
-                            end
-
-                            def recv_put()
-                              result = receive_message(Put_result)
-                              raise result.io unless result.io.nil?
-                              raise result.ia unless result.ia.nil?
-                              return
                             end
 
                             def mutateRow(tableName, row, mutations)
@@ -423,6 +453,39 @@ require 'rhino/thrift/gen/Hbase_types'
                           class Processor
                             include TProcessor
 
+                            def process_enableTable(seqid, iprot, oprot)
+                              args = read_args(iprot, EnableTable_args)
+                              result = EnableTable_result.new()
+                              begin
+                                @handler.enableTable(args.tableName)
+                              rescue IOError => io
+                                result.io = io
+                              end
+                              write_result(result, oprot, 'enableTable', seqid)
+                            end
+
+                            def process_disableTable(seqid, iprot, oprot)
+                              args = read_args(iprot, DisableTable_args)
+                              result = DisableTable_result.new()
+                              begin
+                                @handler.disableTable(args.tableName)
+                              rescue IOError => io
+                                result.io = io
+                              end
+                              write_result(result, oprot, 'disableTable', seqid)
+                            end
+
+                            def process_isTableEnabled(seqid, iprot, oprot)
+                              args = read_args(iprot, IsTableEnabled_args)
+                              result = IsTableEnabled_result.new()
+                              begin
+                                result.success = @handler.isTableEnabled(args.tableName)
+                              rescue IOError => io
+                                result.io = io
+                              end
+                              write_result(result, oprot, 'isTableEnabled', seqid)
+                            end
+
                             def process_getTableNames(seqid, iprot, oprot)
                               args = read_args(iprot, GetTableNames_args)
                               result = GetTableNames_result.new()
@@ -543,19 +606,6 @@ require 'rhino/thrift/gen/Hbase_types'
                                 result.io = io
                               end
                               write_result(result, oprot, 'getRowTs', seqid)
-                            end
-
-                            def process_put(seqid, iprot, oprot)
-                              args = read_args(iprot, Put_args)
-                              result = Put_result.new()
-                              begin
-                                @handler.put(args.tableName, args.row, args.column, args.value)
-                              rescue IOError => io
-                                result.io = io
-                              rescue IllegalArgument => ia
-                                result.ia = ia
-                              end
-                              write_result(result, oprot, 'put', seqid)
                             end
 
                             def process_mutateRow(seqid, iprot, oprot)
@@ -730,6 +780,55 @@ require 'rhino/thrift/gen/Hbase_types'
 
                           # HELPER FUNCTIONS AND STRUCTURES
 
+                          class EnableTable_args
+                            include ThriftStruct
+                            attr_accessor :tableName
+                            FIELDS = {
+                              1 => {:type => TType::STRING, :name => 'tableName'}
+                            }
+                          end
+
+                          class EnableTable_result
+                            include ThriftStruct
+                            attr_accessor :io
+                            FIELDS = {
+                              1 => {:type => TType::STRUCT, :name => 'io', :class => IOError}
+                            }
+                          end
+
+                          class DisableTable_args
+                            include ThriftStruct
+                            attr_accessor :tableName
+                            FIELDS = {
+                              1 => {:type => TType::STRING, :name => 'tableName'}
+                            }
+                          end
+
+                          class DisableTable_result
+                            include ThriftStruct
+                            attr_accessor :io
+                            FIELDS = {
+                              1 => {:type => TType::STRUCT, :name => 'io', :class => IOError}
+                            }
+                          end
+
+                          class IsTableEnabled_args
+                            include ThriftStruct
+                            attr_accessor :tableName
+                            FIELDS = {
+                              1 => {:type => TType::STRING, :name => 'tableName'}
+                            }
+                          end
+
+                          class IsTableEnabled_result
+                            include ThriftStruct
+                            attr_accessor :success, :io
+                            FIELDS = {
+                              0 => {:type => TType::BOOL, :name => 'success'},
+                              1 => {:type => TType::STRUCT, :name => 'io', :class => IOError}
+                            }
+                          end
+
                           class GetTableNames_args
                             include ThriftStruct
                             FIELDS = {
@@ -775,7 +874,7 @@ require 'rhino/thrift/gen/Hbase_types'
                             include ThriftStruct
                             attr_accessor :success, :io
                             FIELDS = {
-                              0 => {:type => TType::LIST, :name => 'success', :element => {:type => TType::STRUCT, :class => RegionDescriptor}},
+                              0 => {:type => TType::LIST, :name => 'success', :element => {:type => TType::STRUCT, :class => TRegionInfo}},
                               1 => {:type => TType::STRUCT, :name => 'io', :class => IOError}
                             }
                           end
@@ -830,7 +929,7 @@ require 'rhino/thrift/gen/Hbase_types'
                             include ThriftStruct
                             attr_accessor :success, :io, :nf
                             FIELDS = {
-                              0 => {:type => TType::STRING, :name => 'success'},
+                              0 => {:type => TType::STRUCT, :name => 'success', :class => TCell},
                               1 => {:type => TType::STRUCT, :name => 'io', :class => IOError},
                               2 => {:type => TType::STRUCT, :name => 'nf', :class => NotFound}
                             }
@@ -851,7 +950,7 @@ require 'rhino/thrift/gen/Hbase_types'
                             include ThriftStruct
                             attr_accessor :success, :io, :nf
                             FIELDS = {
-                              0 => {:type => TType::LIST, :name => 'success', :element => {:type => TType::STRING}},
+                              0 => {:type => TType::LIST, :name => 'success', :element => {:type => TType::STRUCT, :class => TCell}},
                               1 => {:type => TType::STRUCT, :name => 'io', :class => IOError},
                               2 => {:type => TType::STRUCT, :name => 'nf', :class => NotFound}
                             }
@@ -873,7 +972,7 @@ require 'rhino/thrift/gen/Hbase_types'
                             include ThriftStruct
                             attr_accessor :success, :io, :nf
                             FIELDS = {
-                              0 => {:type => TType::LIST, :name => 'success', :element => {:type => TType::STRING}},
+                              0 => {:type => TType::LIST, :name => 'success', :element => {:type => TType::STRUCT, :class => TCell}},
                               1 => {:type => TType::STRUCT, :name => 'io', :class => IOError},
                               2 => {:type => TType::STRUCT, :name => 'nf', :class => NotFound}
                             }
@@ -892,7 +991,7 @@ require 'rhino/thrift/gen/Hbase_types'
                             include ThriftStruct
                             attr_accessor :success, :io
                             FIELDS = {
-                              0 => {:type => TType::MAP, :name => 'success', :key => {:type => TType::STRING}, :value => {:type => TType::STRING}},
+                              0 => {:type => TType::STRUCT, :name => 'success', :class => TRowResult},
                               1 => {:type => TType::STRUCT, :name => 'io', :class => IOError}
                             }
                           end
@@ -911,28 +1010,8 @@ require 'rhino/thrift/gen/Hbase_types'
                             include ThriftStruct
                             attr_accessor :success, :io
                             FIELDS = {
-                              0 => {:type => TType::MAP, :name => 'success', :key => {:type => TType::STRING}, :value => {:type => TType::STRING}},
+                              0 => {:type => TType::STRUCT, :name => 'success', :class => TRowResult},
                               1 => {:type => TType::STRUCT, :name => 'io', :class => IOError}
-                            }
-                          end
-
-                          class Put_args
-                            include ThriftStruct
-                            attr_accessor :tableName, :row, :column, :value
-                            FIELDS = {
-                              1 => {:type => TType::STRING, :name => 'tableName'},
-                              2 => {:type => TType::STRING, :name => 'row'},
-                              3 => {:type => TType::STRING, :name => 'column'},
-                              4 => {:type => TType::STRING, :name => 'value'}
-                            }
-                          end
-
-                          class Put_result
-                            include ThriftStruct
-                            attr_accessor :io, :ia
-                            FIELDS = {
-                              1 => {:type => TType::STRUCT, :name => 'io', :class => IOError},
-                              2 => {:type => TType::STRUCT, :name => 'ia', :class => IllegalArgument}
                             }
                           end
 
@@ -1176,7 +1255,7 @@ require 'rhino/thrift/gen/Hbase_types'
                             include ThriftStruct
                             attr_accessor :success, :io, :ia, :nf
                             FIELDS = {
-                              0 => {:type => TType::STRUCT, :name => 'success', :class => ScanEntry},
+                              0 => {:type => TType::STRUCT, :name => 'success', :class => TRowResult},
                               1 => {:type => TType::STRUCT, :name => 'io', :class => IOError},
                               2 => {:type => TType::STRUCT, :name => 'ia', :class => IllegalArgument},
                               3 => {:type => TType::STRUCT, :name => 'nf', :class => NotFound}
