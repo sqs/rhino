@@ -27,15 +27,27 @@ module Rhino
         timestamp = opts.delete(:timestamp)
         timestamp = timestamp.to_i if timestamp
         
-        data = if timestamp
+        rowresult = if timestamp
           hbase.getRowTs(table_name, key, timestamp)
         else
           hbase.getRow(table_name, key)
         end
 
-        debug("   => #{data.inspect}")
+        debug("   => #{rowresult.inspect}")
         
-        if !data.empty?
+        # TODO: handle timestamps on a per-cell level
+        result_columns = rowresult.columns
+        if !result_columns.empty?
+          data = {}
+          result_columns.each { |name, tcell| data[name] = tcell.value }
+          
+          # consider the timestamp to be the timestamp of the most recent cell
+          data['timestamp'] = -1
+          result_columns.values.each do|tcell|
+            data['timestamp'] = tcell.timestamp if data['timestamp'] < tcell.timestamp
+          end
+          highlight(data.inspect)
+          
           return data
         else
           raise Rhino::Interface::HTable::RowNotFound, "No row found in '#{table_name}' with key '#{key}'"
@@ -46,7 +58,7 @@ module Rhino
         Rhino::ThriftInterface::Scanner.new(self, opts)
       end
       
-      def put(key, data, is_new_record=false, timestamp=nil)
+      def put(key, data, timestamp=nil)
         timestamp = timestamp.to_i if timestamp
         
         mutations = data.collect do |col,val|

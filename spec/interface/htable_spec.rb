@@ -20,17 +20,25 @@ describe Rhino::Interface::HTable do
       lambda { @page_htable.get(nil) }.should raise_error(ArgumentError)
     end
     
-    it "should retrieve the timestamp" do
-      # TODO: patch hbase to return timestamps when getRow is called
-      # i dont think it's possible using the current thrift api, but it is possible from ruby
-      # in hbase-trunk/bin/HBase.rb
-      pending
-      # ts = Time.now.to_i
-      # @page_htable.put('abc', {'title:'=>'hello1'}, false, ts)
-      # @page_htable.put('abc', {'title:'=>'hello2'}, false, ts+1000)
-      # @page_htable.put('abc', {'title:'=>'hello3'}, false, ts+5000)
-      #hie @page_htable.hbase.getVerTs('pages', 'abc', 'title:', ts+10000, 3)
-      #hie @page_htable.get('abc', {:timestamp=>ts})
+    it "should get the latest timestamp" do
+      ts = (Time.now.to_f * 1000).to_i
+      @page_htable.put('abc', {'title:'=>'hello1', 'contents:'=>'hello there'}, ts)
+      @page_htable.put('abc', {'title:'=>'hello2'}, ts+1000)
+      @page_htable.put('abc', {'title:'=>'hello3'}, ts+5000)
+      @page_htable.get('abc')['timestamp'].should == ts+5000
+    end
+    
+    it "should get the timestamp" do
+      @page_htable.put('a99', {'title:'=>'hello2'})
+      @page_htable.get('a99')['timestamp'].should be_close((Time.now.to_f * 1000).to_i, 100)
+    end
+    
+    it "should retrieve the row" do
+      key = 'hello.com'
+      @page_htable.put(key, {'title:'=>'howdy'})
+      row = @page_htable.get(key)
+      row.keys.sort.should == %w(timestamp title:)
+      row['title:'].should == 'howdy'
     end
   end
   
@@ -71,10 +79,10 @@ describe Rhino::Interface::HTable do
   describe "when putting existing rows" do
     it "should delete cells that previously existed if their value is changed to nil" do
       key = 'example.com'
-      @page_htable.put(key, {'title:'=>'howdy', 'links:com.google'=>'Google'}, true)
+      @page_htable.put(key, {'title:'=>'howdy', 'links:com.google'=>'Google'})
       @page_htable.get(key).keys.include?('links:com.google').should == true
       # the cell has been deleted
-      @page_htable.put(key, {'title:'=>'howdy', 'links:com.google'=>nil}, false)
+      @page_htable.put(key, {'title:'=>'howdy', 'links:com.google'=>nil})
       @page_htable.get(key).keys.include?('links:com.google').should == false
     end
   end
@@ -86,9 +94,9 @@ describe Rhino::Interface::HTable do
     
     it "should update the values" do
       key = 'hi.example.com'
-      @page_htable.put(key, {'title:'=>'howdy'}, true)
+      @page_htable.put(key, {'title:'=>'howdy'})
       @page_htable.get(key)['title:'].should == 'howdy'
-      @page_htable.put(key, {'title:'=>'goodbye'}, false)
+      @page_htable.put(key, {'title:'=>'goodbye'})
       @page_htable.get(key)['title:'].should == 'goodbye'
     end
   end
