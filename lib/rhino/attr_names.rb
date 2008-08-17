@@ -24,6 +24,7 @@ module Rhino
         
         attr_name = attr_name.to_s
         return nil if !attr_name or attr_name.empty?
+        return 'timestamp' if attr_name == 'timestamp'
         
         if self.is_valid_attr_name?(attr_name)
           # it is in 'meta:author'-style and thus already a valid attr name, so no need to change it

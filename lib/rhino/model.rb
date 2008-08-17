@@ -75,22 +75,26 @@ module Rhino
     
     extend Rhino::AttrNames::ClassMethods
     
-    def initialize(key, data={}, metadata={}, opts={})
-      debug("Model#initialize(#{key.inspect}, #{data.inspect}, #{metadata.inspect}, #{opts.inspect})")
-      self.timestamp = metadata.delete(:timestamp)
-      self.requested_columns = metadata.delete(:columns)
-      self.opts = {:new_record=>true}.merge(opts)
+    def initialize(key, data={}, opts={})
+      debug("Model#initialize(#{key.inspect}, #{data.inspect}, #{opts.inspect})")
       self.data = data
       self.key = key
+      self.opts = {:new_record=>true}.merge(opts)
     end
     
-    attr_accessor :timestamp
     attr_accessor :requested_columns
     
-    def save
+    def save(with_timestamp=nil)
       debug("Model#save() [key=#{key.inspect}, data=#{data.inspect}, timestamp=#{timestamp.inspect}]")
       check_constraints()
-      self.class.htable.put(key, data, timestamp)
+      
+      # we need to delete data['timestamp'] here or else it will be written to hbase as a column (and will
+      # cause an error since no 'timestamp' column exists)
+      # but we also want to invalidate the timestamp since saving the row will give it a new timestamp,
+      # so this accomplishes both
+      data.delete('timestamp')
+      
+      self.class.htable.put(key, data, with_timestamp)
       if new_record?
         @opts[:new_record] = false
         @opts[:was_new_record] = true
@@ -154,6 +158,14 @@ module Rhino
     
     def key=(a_key)
       @key = a_key
+    end
+    
+    def timestamp
+      @data['timestamp']
+    end
+    
+    def timestamp=(a_timestamp)
+      @data['timestamp'] = a_timestamp
     end
     
     private
@@ -269,13 +281,13 @@ module Rhino
     end
     
     # loads an existing record's data into an object
-    def Model.load(key, data, metadata)
-      new(key, data, metadata, {:new_record=>false})
+    def Model.load(key, data)
+      new(key, data, {:new_record=>false})
     end
     
-    def Model.create(key, data={}, metadata={})
-      obj = new(key, data, metadata)
-      obj.save
+    def Model.create(key, data={})
+      obj = new(key, data)
+      obj.save(data[:timestamp])
       obj
     end
     
@@ -312,9 +324,8 @@ module Rhino
       # get the row
       begin
         data = htable.get(key, :timestamp=>timestamp)
-        metadata = {:timestamp=>timestamp}
         debug("-> found [key=#{key.inspect}, data=#{data.inspect}]")
-        load(key, data, metadata)
+        load(key, data)
       rescue Rhino::Interface::HTable::RowNotFound
         return nil
       end
