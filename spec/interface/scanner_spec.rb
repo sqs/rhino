@@ -55,4 +55,21 @@ describe Rhino::Interface::Scanner do
       @page_htable.scan.collect.should == []
     end
   end
+  
+  if ENV['RUN_HUGE_TEST']
+    describe "when many rows exist" do
+      before do
+        (1..45000).each do |n|
+          @page_htable.put("item#{n}", {'title:'=>"title#{n}"})
+        end
+      end
+      
+      it "should scan all rows without an error" do
+        lambda { @page_htable.scan.each do |row|
+          puts row.title
+        end }.should_not raise_error
+      end
+      
+    end
+  end
 end

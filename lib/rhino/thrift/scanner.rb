@@ -26,8 +26,10 @@ module Rhino
       #   {'key'=>'the row key', 'col1:'=>'val1', 'col2:asdf'=>'val2'}
       def next_row
         begin
-          row = htable.hbase.scannerGet(@scanner)
-          return row.columns.merge('key'=>row.row)
+          rowresult = htable.hbase.scannerGet(@scanner)
+          row = @htable.prepare_rowresult(rowresult)          
+          row['key'] = rowresult.row
+          return row
         rescue Apache::Hadoop::Hbase::Thrift::NotFound
           htable.hbase.scannerClose(@scanner)
           return nil
