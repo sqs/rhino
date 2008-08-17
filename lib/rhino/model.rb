@@ -90,7 +90,7 @@ module Rhino
     def save
       debug("Model#save() [key=#{key.inspect}, data=#{data.inspect}, timestamp=#{timestamp.inspect}]")
       check_constraints()
-      self.class.htable.put(key, data, new_record?, timestamp)
+      self.class.htable.put(key, data, timestamp)
       if new_record?
         @opts[:new_record] = false
         @opts[:was_new_record] = true
