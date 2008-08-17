@@ -12,7 +12,7 @@ module Rhino
     def each
       while row_data = @hscanner.next_row()
         row_key = row_data.delete('key')
-        row = @model.load(row_key, row_data, {})
+        row = @model.load(row_key, row_data)
         yield(row)
       end
     end
