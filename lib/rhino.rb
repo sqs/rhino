@@ -3,6 +3,7 @@ $:.unshift File.dirname(__FILE__)
 require "rubygems"
 
 # get Class.cattr_accessor from ActiveSupport
+require 'active_support/core_ext/string'
 require 'active_support/core_ext/array/extract_options.rb'
 require 'active_support/core_ext/class/attribute_accessors.rb'
 class Array; include ActiveSupport::CoreExtensions::Array::ExtractOptions; end

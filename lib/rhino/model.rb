@@ -275,9 +275,10 @@ module Rhino
       end
     end
     
-    # Gets the class name, even if the class is within a module (ex: CoolModule::MyThing -> mythings)
+    # Determines the table name, even if the model class is within a module (ex: CoolModule::MyThing -> mythings).
+    # You can override this by defining the <tt>table_name</tt> class method on your model class.
     def Model.table_name
-      self.name.downcase.split('::')[-1] + 's'
+      self.name.downcase.split('::')[-1].pluralize
     end
     
     # loads an existing record's data into an object

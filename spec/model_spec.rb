@@ -11,8 +11,15 @@ describe Rhino::Model do
       @table = Page
     end
   
-    it "should determine the name of the table correctly" do
-      @table.table_name.should == "pages"
+    describe "when determining the table name" do
+      it "should pluralize the class name" do
+        @table.table_name.should == "pages"
+      end
+      
+      it "should heed inflection rules" do
+        class Category < Rhino::Model;end
+        Category.table_name.should == 'categories'
+      end
     end
   
     it "should record column families as defined" do
