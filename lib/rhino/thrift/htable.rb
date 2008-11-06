@@ -90,10 +90,9 @@ module Rhino
         
         # consider the timestamp to be the timestamp of the most recent cell
         data['timestamp'] = -1
-        result_columns.values.each do|tcell|
+        result_columns.values.each do |tcell|
           data['timestamp'] = tcell.timestamp if data['timestamp'] < tcell.timestamp
         end
-        
         return data
       end
       
