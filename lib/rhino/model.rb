@@ -68,8 +68,8 @@ module Rhino
   #   page.meta_author # returns value of meta:author column
   #   page.meta_language = 'en-US' # sets value of meta:language column
   class Model
-    extend Rhino::Constraints::ClassMethods
-    include Rhino::Constraints::InstanceMethods
+    # extend Rhino::Constraints::ClassMethods
+    # include Rhino::Constraints::InstanceMethods
     
     extend Rhino::Aliases::ClassMethods
     
@@ -81,12 +81,10 @@ module Rhino
       self.key = key
       self.opts = {:new_record=>true}.merge(opts)
     end
-    
-    attr_accessor :requested_columns
-    
+        
     def save(with_timestamp=nil)
       debug("Model#save() [key=#{key.inspect}, data=#{data.inspect}, timestamp=#{timestamp.inspect}]")
-      check_constraints()
+      check_constraints() if respond_to?(:check_constraints)
       
       # we need to delete data['timestamp'] here or else it will be written to hbase as a column (and will
       # cause an error since no 'timestamp' column exists)

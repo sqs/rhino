@@ -14,4 +14,12 @@ describe "when using constraints" do
     @page.title = "any title will do"
     lambda { @page.save }.should_not raise_error(Rhino::ConstraintViolation)
   end
+  
+  describe "when using more than one model" do
+    class User < Rhino::Model; end
+    
+    it "should only apply constraints to the model on which they were declared" do
+      lambda { User.create('testuser') }.should_not raise_error(Rhino::ConstraintViolation)
+    end
+  end
 end

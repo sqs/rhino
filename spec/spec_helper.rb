@@ -21,6 +21,8 @@ class Image < Rhino::Cell
 end
 
 class Page < Rhino::Model
+  include Rhino::Constraints
+  
   column_family :title
   column_family :contents
   column_family :links
