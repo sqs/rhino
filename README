@@ -63,6 +63,8 @@ The following code points Rhino to the Thrift server you just started (which by 
 A class definition like:
 
   class Page < Rhino::Model
+    include Rhino::Constraints
+
     column_family :title
     column_family :contents
     column_family :links
