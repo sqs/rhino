@@ -37,19 +37,12 @@ module Rhino
       end
     end
     
-    # Adds multiple cells using Cell.add_multiple(...) and then saves the row to the database.
-    # Returns an array of the cell objects.
-    def self.create_multiple(keys_and_contents)
-      cells = add_multiple(keys_and_contents)
-      row.save
-      return cells
-    end
-    
     # Creates cells in the database from the specified <tt>keys_and_contents</tt>, which is a hash in the form:
     #   {'com.yahoo'=>'Yahoo', 'com.apple.www'=>'Apple'}
+    # and saves the cells.
     # Returns an array of the cell objects.
-    def self.add_multiple(keys_and_contents)
-      return keys_and_contents.collect do |key,contents|
+    def self.create_multiple(keys_and_contents)
+      keys_and_contents.collect do |key,contents|
         create(key, contents)
       end
     end
@@ -57,19 +50,10 @@ module Rhino
     # Adds a cell using Cell.add(...) and then saves the row to the database.
     # Returns the cell object.
     def self.create(key, contents)
-      cell = add(key, contents)
-      row.save
-      return cell
-    end
-    
-    # Creates a cell in the database under this column family with the column name given in <tt>key</tt> and the supplied contents.
-    # Returns the cell object.
-    def self.add(key, contents)
       cell = new(key, contents)
-      cell.write
+      cell.save
       return get(key)
     end
-    
     
     def self.belongs_to(containing_class_name)
       debug("#{self.class.name} belongs_to #{containing_class_name}")
@@ -113,15 +97,18 @@ module Rhino
       write
     end
     
-    # Writes this cell's key and contents to its row object, but does not save this row object.
+    # Writes this cell's key and contents to its row object, but does not save this cell.
     def write
       self.class.row.set_attribute(attr_name, contents)
     end
     
-    def save
-      self.class.row.save
+    # Writes this cell's data to the row and saves only this cell.
+    def save(timestamp=nil)
+      write
+      self.class.row.class.htable.put(self.class.row.key, {attr_name=>contents}, timestamp)
     end
     
+    # TODO: update to destroy the cell without re-saving the row
     def destroy
       self.class.row.delete_attribute(attr_name)
       self.class.row.save
