@@ -49,9 +49,15 @@ module Rhino
     
     # Adds a cell using Cell.add(...) and then saves the row to the database.
     # Returns the cell object.
-    def self.create(key, contents)
+    def self.create(key, contents, timestamp=nil)
+      cell = add(key, contents)
+      cell.save(timestamp)
+      return cell
+    end
+    
+    def self.add(key, contents)
       cell = new(key, contents)
-      cell.save
+      cell.write
       return get(key)
     end
     
