@@ -1,7 +1,6 @@
 module Rhino
   module Constraints
     def self.included(base)
-      puts("Constraints base = #{base.inspect}, self = #{self.inspect}")
       base.extend(ClassMethods)
     end
     
@@ -17,7 +16,6 @@ module Rhino
       end
     
       def constraint(name, &logic)
-        puts "@constraints = #{@constraints.inspect}"
         debug("#{self.class.name} constraint: #{name}")
         constraints[name] = logic 
       end
