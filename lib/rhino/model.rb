@@ -266,10 +266,12 @@ module Rhino
     
     # Specifying that a model <tt>has_many :links</tt> overwrites the Model#links method to
     # return a proxied array of columns underneath the <tt>links:</tt> column family.
-    def Model.has_many(column_family_name, cf_class=Rhino::Cell)
+    def Model.has_many(column_family_name, cell_class=Rhino::Cell)
       column_family_name = column_family_name.to_s.gsub(':','')
       define_method(column_family_name) do
-        cf_class.connect(self, send("#{column_family_name}_family"))
+        column_family = send("#{column_family_name}_family")
+        @cells_proxies ||= {}
+        @cells_proxies[column_family_name] ||= Rhino::CellsProxy.new(self, column_family, cell_class)
       end
     end
     

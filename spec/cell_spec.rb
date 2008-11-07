@@ -91,12 +91,21 @@ describe Rhino::Cell do
       end
     end
     
-    it "should allow retrieval of the containing model by the name specified in belongs_to" do
-      @page.links.get('com.example.an/path').page.should == @page
-    end
-    
-    it "should allow retrieval of the containing model row by #class.row" do
-      @page.links.get('com.example.an/path').class.row.should == @page
+    describe "when accessing the containing row" do
+      it "should allow retrieval of the containing model by the name specified in belongs_to" do
+        @page.links.get('com.example.an/path').page.should == @page
+      end
+
+      it "should allow retrieval of the containing model row by #class.row" do
+        @page.links.get('com.example.an/path').row.should == @page
+      end
+      
+      it "should associate each cell with its actual row, even when two rows exist and point to two different cells" do
+        page2 = Page.create(@key, {:title=>'Test2', 'links:gov.change/path'=>'Click now'})
+        link1 = @page.links.get('com.example.an/path')
+        link2 = page2.links.get('gov.change/path')
+        link1.page.should_not == link2.page
+      end
     end
   
     describe "adding objects" do

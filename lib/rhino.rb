@@ -29,6 +29,7 @@ require 'rhino/aliases'
 require 'rhino/model'
 require 'rhino/column_family'
 require 'rhino/cell'
+require 'rhino/cells_proxy'
 require 'rhino/version'
 require 'rhino/active_record_impersonation'
 
