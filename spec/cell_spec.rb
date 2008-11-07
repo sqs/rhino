@@ -147,5 +147,17 @@ describe Rhino::Cell do
         Page.get(@key).links.get('com.google.www/search').should == nil
       end
     end
+    
+    it "should find two equal cells equal" do
+      @link1 = @page.links.get('com.google.www/search')
+      @link2 = @page.links.get('com.google.www/search')
+      @link1.should == @link2
+    end
+    
+    it "should find two different cells non-equal" do
+      @link1 = @page.links.get('com.google.www/search')
+      @link2 = @page.links.get('com.example.an/path')
+      @link1.should_not == @link2
+    end
   end
 end

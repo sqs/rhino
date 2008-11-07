@@ -80,6 +80,10 @@ module Rhino
       @contents = contents
     end
     
+    def ==(cell2)
+      self.class.row == cell2.class.row && key == cell2.key && contents == cell2.contents
+    end
+    
     # The full column name of this object in its containing row.
     def attr_name
       "#{self.class.column_family_name}:#{key}"
