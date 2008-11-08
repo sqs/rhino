@@ -10,6 +10,7 @@ module Rhino
         @opts = opts
         @opts[:start_row] ||= ''
         @opts[:columns] ||= self.htable.column_families
+        #raise @opts[:columns].inspect
         
         open_scanner
       end
