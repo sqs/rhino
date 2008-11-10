@@ -1,5 +1,5 @@
 namespace :hbase do
-  HBASE_DIR = '~/src/hbase-0.18.1'
+  HBASE_DIR = '~/src/hbase'
   
   desc "start hbase & thrift"
   task :start do

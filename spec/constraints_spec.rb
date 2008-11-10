@@ -6,6 +6,10 @@ describe "when using constraints" do
     @page = Page.new('some-page', {:title=>blank_title, :contents=>"hello"})
   end
   
+  after do
+    Page.table.delete_all_rows
+  end
+  
   it "should not save objects that violate constraints" do
     lambda { @page.save }.should raise_error(Rhino::ConstraintViolation)
   end
