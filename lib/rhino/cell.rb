@@ -46,7 +46,7 @@ module Rhino
     # Writes this cell's data to the row and saves only this cell.
     def save(timestamp=nil)
       write
-      row.class.htable.put(row.key, {attr_name=>contents}, timestamp)
+      row.class.table.put(row.key, {attr_name=>contents}, timestamp)
     end
     
     # TODO: update to destroy the cell without re-saving the row

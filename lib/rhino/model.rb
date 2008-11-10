@@ -92,7 +92,7 @@ module Rhino
       # so this accomplishes both
       data.delete('timestamp')
       
-      self.class.htable.put(key, data, with_timestamp)
+      self.class.table.put(key, data, with_timestamp)
       if new_record?
         @opts[:new_record] = false
         @opts[:was_new_record] = true
@@ -102,7 +102,7 @@ module Rhino
     
     def destroy
       debug("Model#destroy() [key=#{key.inspect}]")
-      self.class.htable.delete_row(key)
+      self.class.table.delete_row(key)
     end
     
     def data
@@ -208,33 +208,36 @@ module Rhino
     # CLASS METHODS #
     #################
     
-    # Specifies the endpoint URL for the HBase REST API. This URL should end in a slash (e.g., "http://localhost:60010/api").
-    # The connection is not actually "established", however, until +connection+ is called.
-    def Model.connect(host, port)
-      debug("Model.connect(#{host.inspect}, #{port.inspect})")
-      raise "already connected" if hbase
-      @hbase = Rhino::ThriftInterface::HBase.new(host, port)
+    def Model.connect(host, port, adapter=Rhino::HBaseThriftInterface)
+      debug("Model.connect(#{host.inspect}, #{port.inspect}, #{adapter.inspect})")
+      raise "already connected" if connection
+      @adapter = adapter
+      @conn = adapter::Base.new(host, port)
+    end
+    
+    def Model.adapter
+      @adapter
     end
     
     # Returns true if connected to the database, and false otherwise.
     def Model.connected?
-      @hbase != nil
+      @conn != nil
     end
     
-    # Returns the connection to HBase. The connection to HBase is shared across all models and is stored in Rhino::Model,
+    # Returns the connection. The connection is shared across all models and is stored in Rhino::Model,
     # so models retrieve it from Rhino::Table.
-    def Model.hbase
+    def Model.connection
       # uses self.name instead of self.class because in class methods, self.class==Object and self.name=="Rhino::Model"
       if self.name == "Rhino::Model"
-        @hbase
+        @conn
       else
-        Rhino::Model.hbase
+        Rhino::Model.connection
       end
     end
     
-    # Returns the HTable interface.
-    def Model.htable
-      @htable ||= Rhino::ThriftInterface::HTable.new(hbase, table_name)
+    # Returns the table interface.
+    def Model.table
+      @table ||= Rhino::Model.adapter::Table.new(connection, table_name)
     end
     
     cattr_accessor :column_families
@@ -324,16 +327,16 @@ module Rhino
       
       # get the row
       begin
-        data = htable.get(key, :timestamp=>timestamp)
+        data = table.get(key, :timestamp=>timestamp)
         debug("-> found [key=#{key.inspect}, data=#{data.inspect}]")
         load(key, data)
-      rescue Rhino::Interface::HTable::RowNotFound
+      rescue Rhino::Interface::Table::RowNotFound
         return nil
       end
     end
     
     def Model.delete_all
-      htable.delete_all_rows
+      table.delete_all_rows
     end
   end
 end

@@ -1,10 +1,10 @@
 module Rhino
-  module ThriftInterface
+  module HBaseThriftInterface
     class HBase
       attr_reader :host, :port, :client
       
       def initialize(host, port)
-        debug("Rhino::ThriftInterface::HBase.new(#{host.inspect}, #{port.inspect})")
+        debug("Rhino::HBaseThriftInterface::HBase.new(#{host.inspect}, #{port.inspect})")
         @host = host
         @port = port
         connect()

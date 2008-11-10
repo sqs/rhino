@@ -1,6 +1,6 @@
 module Rhino
-  module ThriftInterface
-    class HTable < Rhino::Interface::HTable
+  module HBaseThriftInterface
+    class Table < Rhino::Interface::Table
       attr_reader :hbase, :table_name
       
       def initialize(hbase, table_name, opts={})
@@ -39,12 +39,12 @@ module Rhino
         if !rowresult.columns.empty?
           return prepare_rowresult(rowresult)
         else
-          raise Rhino::Interface::HTable::RowNotFound, "No row found in '#{table_name}' with key '#{key}'"
+          raise Rhino::HBaseThriftInterface::Table::RowNotFound, "No row found in '#{table_name}' with key '#{key}'"
         end
       end
       
       def scan(opts={})
-        Rhino::ThriftInterface::Scanner.new(self, opts)
+        Rhino::HBaseThriftInterface::Scanner.new(self, opts)
       end
       
       def put(key, data, timestamp=nil)

@@ -1,5 +1,5 @@
 module Rhino
-  module ThriftInterface
+  module HBaseThriftInterface
     class Scanner
       include Enumerable
       

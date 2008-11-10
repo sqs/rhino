@@ -9,16 +9,16 @@ require 'active_support/core_ext/class/attribute_accessors.rb'
 class Array; include ActiveSupport::CoreExtensions::Array::ExtractOptions; end
 
 
-require 'rhino/interface/hbase'
-require 'rhino/interface/htable'
+require 'rhino/interface/base'
+require 'rhino/interface/table'
 require 'rhino/interface/scanner'
 
 require 'thrift/transport/tsocket.rb'
 require 'thrift/protocol/tbinaryprotocol.rb'
-require 'rhino/thrift/gen/Hbase'
-require 'rhino/thrift/hbase'
-require 'rhino/thrift/htable'
-require 'rhino/thrift/scanner'
+require 'rhino/interface/hbase-thrift/gen/Hbase'
+require 'rhino/interface/hbase-thrift/base'
+require 'rhino/interface/hbase-thrift/table'
+require 'rhino/interface/hbase-thrift/scanner'
 
 
 require 'rhino/debug'
