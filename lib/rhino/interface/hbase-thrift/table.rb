@@ -27,20 +27,21 @@ module Rhino
         timestamp = opts.delete(:timestamp)
         timestamp = timestamp.to_i if timestamp
         
-        rowresult = if timestamp
-          hbase.getRowTs(table_name, key, timestamp)
-        else
-          hbase.getRow(table_name, key)
+        begin
+          rowresult = if timestamp
+            hbase.getRowTs(table_name, key, timestamp)
+          else
+            hbase.getRow(table_name, key)
+          end
+        rescue
+          raise Rhino::Interface::Table::RowNotFound, "No row found in '#{table_name}' with key '#{key}'"
         end
 
         debug("   => #{rowresult.inspect}")
         
         # TODO: handle timestamps on a per-cell level
-        if !rowresult.columns.empty?
-          return prepare_rowresult(rowresult)
-        else
-          raise Rhino::HBaseThriftInterface::Table::RowNotFound, "No row found in '#{table_name}' with key '#{key}'"
-        end
+        return prepare_rowresult(rowresult)
+
       end
       
       def scan(opts={})
