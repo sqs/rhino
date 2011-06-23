@@ -72,8 +72,9 @@ module Rhino
     # include Rhino::Constraints::InstanceMethods
     
     extend Rhino::Aliases::ClassMethods
-    
     extend Rhino::AttrNames::ClassMethods
+    
+    attr_reader :column_families
     
     def initialize(key, data={}, opts={})
       debug("Model#initialize(#{key.inspect}, #{data.inspect}, #{opts.inspect})")
@@ -208,25 +209,25 @@ module Rhino
     # CLASS METHODS #
     #################
     
-    def Model.connect(host, port, adapter=Rhino::HBaseThriftInterface)
+    def self.connect(host, port, adapter=Rhino::HBaseThriftInterface)
       debug("Model.connect(#{host.inspect}, #{port.inspect}, #{adapter.inspect})")
       raise "already connected" if connection
       @adapter = adapter
       @conn = adapter::Base.new(host, port)
     end
     
-    def Model.adapter
+    def self.adapter
       @adapter
     end
     
     # Returns true if connected to the database, and false otherwise.
-    def Model.connected?
+    def self.connected?
       @conn != nil
     end
     
     # Returns the connection. The connection is shared across all models and is stored in Rhino::Model,
     # so models retrieve it from Rhino::Table.
-    def Model.connection
+    def self.connection
       # uses self.name instead of self.class because in class methods, self.class==Object and self.name=="Rhino::Model"
       if self.name == "Rhino::Model"
         @conn
@@ -236,20 +237,18 @@ module Rhino
     end
     
     # Returns the table interface.
-    def Model.table
+    def self.table
       @table ||= Rhino::Model.adapter::Table.new(connection, table_name)
     end
     
-    attr_accessor :column_families
-    
-    def Model.column_family(name)
+    def self.column_family(name)
       name = name.to_s.gsub(':','')
-      self.column_families ||= []
-      if column_families.include?(name)
+      @column_families ||= []
+      if @column_families.include?(name)
         debug("column_family '#{name}' already defined for #{self.class.name}")
-        column_families.delete(name)
+        @column_families.delete(name)
       end
-      column_families << name
+      @column_families << name
       
       # also define Model#meta_columns and Model#meta_family methods for each column_family
       class_eval %Q{
@@ -269,7 +268,7 @@ module Rhino
     
     # Specifying that a model <tt>has_many :links</tt> overwrites the Model#links method to
     # return a proxied array of columns underneath the <tt>links:</tt> column family.
-    def Model.has_many(column_family_name, cell_class=Rhino::Cell)
+    def self.has_many(column_family_name, cell_class=Rhino::Cell)
       column_family_name = column_family_name.to_s.gsub(':','')
       define_method(column_family_name) do
         column_family = send("#{column_family_name}_family")
@@ -280,16 +279,16 @@ module Rhino
     
     # Determines the table name, even if the model class is within a module (ex: CoolModule::MyThing -> mythings).
     # You can override this by defining the <tt>table_name</tt> class method on your model class.
-    def Model.table_name
+    def self.table_name
       self.name.downcase.split('::')[-1].pluralize
     end
     
     # loads an existing record's data into an object
-    def Model.load(key, data)
+    def self.load(key, data)
       new(key, data, {:new_record=>false})
     end
     
-    def Model.create(key, data={})
+    def self.create(key, data={})
       obj = new(key, data)
       obj.save(data[:timestamp])
       obj
@@ -297,7 +296,7 @@ module Rhino
     
     # Scans the table with +opts+ (if provided) and returns an array of each row that is returned by the scanner.
     # See +scan+ for options.
-    def Model.get_all(opts={})
+    def self.get_all(opts={})
       scan(opts).collect
     end
     
@@ -313,11 +312,11 @@ module Rhino
     # Note that <tt>:start_row</tt> is inclusive of the start row key, while <tt>:stop_row</tt> is exclusive.
     # For example, with row keys A, B, and C, starting at B would return B and C. If the stop row were C, however,
     # the Scanner would only return A and B.
-    def Model.scan(opts={})
+    def self.scan(opts={})
       Rhino::Scanner.new(self, opts)
     end
     
-    def Model.get(key, get_opts={})
+    def self.get(key, get_opts={})
       debug("Model.get(#{key.inspect}, #{get_opts.inspect})")
       
       # handle opts
@@ -335,7 +334,7 @@ module Rhino
       end
     end
     
-    def Model.delete_all
+    def self.delete_all
       table.delete_all_rows
     end
   end
