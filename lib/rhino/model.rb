@@ -280,7 +280,8 @@ module Rhino
     # Determines the table name, even if the model class is within a module (ex: CoolModule::MyThing -> mythings).
     # You can override this by defining the <tt>table_name</tt> class method on your model class.
     def self.table_name
-      self.name.downcase.split('::')[-1].pluralize
+      name = self.name.downcase.split('::')[-1]
+      name += 's' if not name.end_with? 's'
     end
     
     # loads an existing record's data into an object
