@@ -75,11 +75,7 @@ A class definition like:
 		constraint(:title_required) { |page| page.title and !page.title.empty? }
 	end
 
-is mapped to the following HBase table as described by the [HBase Query Language](http://wiki.apache.org/lucene-hadoop/HBase/HBaseShell)
-
-	CREATE TABLE pages(title:, contents:, links:, meta:, images:);
-  
-or as described by the HBase shell language:
+is mapped to the following in the HBase shell language:
   
 	create 'pages', 'title', 'contents', 'links', 'meta', 'images'
 
@@ -180,4 +176,9 @@ families in HBase before you continue. To do so, launch the HBase shell:
 and execute:
 
 	create 'pages', 'title', 'contents', 'links', 'meta', 'images'
+
+## Notes to myself
+* [HBase thrift docs](http://hbase.apache.org/apidocs/org/apache/hadoop/hbase/thrift/doc-files/Hbase.html)
+* [HBase quick start](http://hbase.apache.org/quickstart.html)
+
 
