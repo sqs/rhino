@@ -235,6 +235,10 @@ module Rhino
       @table ||= @@adapter::Table.new(connection, table_name)
     end
     
+    def self.adapter
+      @@adapter
+    end
+    
     def self.column_families
       @@column_families
     end
@@ -263,7 +267,7 @@ module Rhino
         end
       }
     end
-    
+        
     # Specifying that a model <tt>has_many :links</tt> overwrites the Model#links method to
     # return a proxied array of columns underneath the <tt>links:</tt> column family.
     def self.has_many(column_family_name, cell_class=Rhino::Cell)
