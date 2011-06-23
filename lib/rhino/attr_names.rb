@@ -47,7 +47,7 @@ module Rhino
         return false if attr_name.nil? or attr_name == "" or !attr_name.include?(':')
                 
         column_family, column = attr_name.split(':', 2)
-        return @column_families.include?(column_family)
+        return self.column_families.include?(column_family)
       end
     
       # Converts underscored attribute names to the corresponding attribute name.

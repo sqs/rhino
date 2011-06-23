@@ -14,7 +14,8 @@ describe "when using attribute aliases" do
   end
   
   it "should allow instantiation using attribute aliases" do
-    @page = Page.create('some-page', :author=>'Bob', :title=>'a title')
+    @page = Page.create 'some-page', :author=>'Bob', :title=>'a title'
+    
     @page.meta_author.should == 'Bob'
     @page.author.should == 'Bob'
   end

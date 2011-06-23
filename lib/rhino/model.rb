@@ -1,3 +1,6 @@
+require 'rubygems'
+require 'active_support/inflector'
+
 module Rhino
   # == Specify the structure of your Hbase table
   # To set up the mapping from your Hbase table to Rhino, you must specify the table structure:
@@ -73,8 +76,6 @@ module Rhino
     
     extend Rhino::Aliases::ClassMethods
     extend Rhino::AttrNames::ClassMethods
-    
-    attr_reader :column_families
     
     def initialize(key, data={}, opts={})
       debug("Model#initialize(#{key.inspect}, #{data.inspect}, #{opts.inspect})")
@@ -209,46 +210,43 @@ module Rhino
     # CLASS METHODS #
     #################
     
-    def self.connect(host, port, adapter=Rhino::HBaseThriftInterface)
+    def self.connect(host, port, adapter = Rhino::HBaseThriftInterface)
       debug("Model.connect(#{host.inspect}, #{port.inspect}, #{adapter.inspect})")
-      raise "already connected" if connection
-      @adapter = adapter
-      @conn = adapter::Base.new(host, port)
+      raise "already connected" if self.connected?
+      @@adapter = adapter
+      @@conn = adapter::Base.new(host, port)
+      @@column_families = []
     end
-    
-    def self.adapter
-      @adapter
-    end
-    
+        
     # Returns true if connected to the database, and false otherwise.
     def self.connected?
-      @conn != nil
+      return false if not self.class_variable_defined? :@@conn
+      @@conn != nil
     end
     
-    # Returns the connection. The connection is shared across all models and is stored in Rhino::Model,
-    # so models retrieve it from Rhino::Table.
+    #returns the shared connection. throws if not connected
     def self.connection
-      # uses self.name instead of self.class because in class methods, self.class==Object and self.name=="Rhino::Model"
-      if self.name == "Rhino::Model"
-        @conn
-      else
-        Rhino::Model.connection
-      end
+      raise "not connected" if not self.connected?
+      @@conn
     end
     
     # Returns the table interface.
     def self.table
-      @table ||= Rhino::Model.adapter::Table.new(connection, table_name)
+      @table ||= @@adapter::Table.new(connection, table_name)
+    end
+    
+    def self.column_families
+      @@column_families
     end
     
     def self.column_family(name)
       name = name.to_s.gsub(':','')
-      @column_families ||= []
-      if @column_families.include?(name)
+      @@column_families ||= []
+      if @@column_families.include?(name)
         debug("column_family '#{name}' already defined for #{self.class.name}")
-        @column_families.delete(name)
+        @@column_families.delete(name)
       end
-      @column_families << name
+      @@column_families << name
       
       # also define Model#meta_columns and Model#meta_family methods for each column_family
       class_eval %Q{
@@ -280,8 +278,7 @@ module Rhino
     # Determines the table name, even if the model class is within a module (ex: CoolModule::MyThing -> mythings).
     # You can override this by defining the <tt>table_name</tt> class method on your model class.
     def self.table_name
-      name = self.name.downcase.split('::')[-1]
-      name += 's' if not name.end_with? 's'
+      self.name.downcase.split('::')[-1].pluralize
     end
     
     # loads an existing record's data into an object
