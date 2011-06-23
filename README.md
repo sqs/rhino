@@ -33,6 +33,8 @@ Since Rhino uses the HBase Thrift API, you must first install both HBase and Thr
 	cd hbase-0.90.3
 	bin/start-hbase.sh
 	bin/hbase thrift start
+	
+TODO: set up an hbase server in ec2 so that the hbase install isn't needed
 
 ### Installing Rhino
 
@@ -170,4 +172,12 @@ If you call *get* with no arguments, you will get the most recent Page.
   
 ## More information
 
-Read the specs in the spec/ directory to see more usage examples. Also look at the spec models in spec/spec_helper.rb.
+Read the specs in the spec/ directory to see more usage examples. Also look at the spec models in spec/spec_helper.rb. Note that to run the specs, you will need to create the necessary table and column
+families in HBase before you continue. To do so, launch the HBase shell:
+	
+	$HBASE_DIR/bin/hbase shell
+	
+and execute:
+
+	create 'pages', 'title', 'contents', 'links', 'meta', 'images'
+
