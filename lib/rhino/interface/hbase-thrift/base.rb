@@ -43,16 +43,16 @@ module Rhino
       def table_names
         client.getTableNames()
       end
-
+      
       def method_missing(method, *args)
         debug("#{self.class.name}#method_missing(#{method.inspect}, #{args.inspect})")
         begin
           connect() if not @client
-          client.send(method, *args) if @client
-        rescue Thrift::TransportException
+          @client.send(method, *args) if @client
+        rescue Thrift::TransportException => te
           @client = nil
           connect()
-          client.send(method, *args) if @client
+          @client.send(method, *args) if @client
         end
       end
     end

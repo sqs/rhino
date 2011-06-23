@@ -1,6 +1,7 @@
 require File.dirname(__FILE__) + '/spec_helper.rb'
 
 describe "when using attribute aliases" do
+  
   it "should read the value of the target" do
     @page = Page.new('some-page')
     @page.meta_author = 'Alice'

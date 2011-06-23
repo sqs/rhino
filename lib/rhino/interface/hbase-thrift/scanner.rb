@@ -3,13 +3,13 @@ module Rhino
     class Scanner
       include Enumerable
       
-      attr_reader :htable
+      attr_reader :htable, :columns
       
-      def initialize(htable, opts={})
+      def initialize(htable, columns, opts={})
         @htable = htable
         @opts = opts
         @opts[:start_row] ||= ''
-        @opts[:columns] ||= self.htable.column_families
+        @columns = columns
         #raise @opts[:columns].inspect
         
         open_scanner
@@ -17,9 +17,9 @@ module Rhino
       
       def open_scanner
         @scanner = if @opts[:stop_row]
-          htable.hbase.scannerOpenWithStop(htable.table_name, @opts[:start_row], @opts[:stop_row], @opts[:columns])
+          htable.hbase.scannerOpenWithStop(htable.table_name, @opts[:start_row], @opts[:stop_row], @columns)
         else
-          htable.hbase.scannerOpen(htable.table_name, @opts[:start_row], @opts[:columns])
+          htable.hbase.scannerOpen(htable.table_name, @opts[:start_row], @columns)
         end
       end
       
@@ -28,10 +28,14 @@ module Rhino
       def next_row
         begin
           rowresult = htable.hbase.scannerGet(@scanner)
+          #scannerGet returns list of Apache::Hadoop::Hbase::Thrift::TRowResult. just use the first one
+          raise Apache::Hadoop::Hbase::Thrift::IOError.new if rowresult.length == 0
+          rowresult = rowresult[0] if rowresult.class == Array
           row = @htable.prepare_rowresult(rowresult)          
           row['key'] = rowresult.row
           return row
-        rescue Apache::Hadoop::Hbase::Thrift::NotFound
+        #scannerGet never throws NotFound. only IOError or IllegalArgument
+        rescue Apache::Hadoop::Hbase::Thrift::IOError
           htable.hbase.scannerClose(@scanner)
           return nil
         end
