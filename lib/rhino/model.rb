@@ -240,7 +240,7 @@ module Rhino
       @table ||= Rhino::Model.adapter::Table.new(connection, table_name)
     end
     
-    cattr_accessor :column_families
+    attr_accessor :column_families
     
     def Model.column_family(name)
       name = name.to_s.gsub(':','')

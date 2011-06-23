@@ -7,10 +7,10 @@
 require 'thrift/protocol/tprotocol'
 require 'Hbase_types'
 
-        module Apache
-          module Hadoop
-            module Hbase
-              module Thrift
+module Apache
+  module Hadoop
+    module Hbase
+      module Thrift
       end
     end
   end
