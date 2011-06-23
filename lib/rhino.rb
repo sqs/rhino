@@ -1,6 +1,6 @@
 $:.unshift File.dirname(__FILE__)
 
-require "rubygems"
+require 'rubygems'
 require 'active_support'
 
 # cherry-pick ActiveSupport modules if we can (throws errors under rails 2.3)
@@ -19,7 +19,7 @@ require 'thrift'
 require 'thrift/transport/base_transport'
 require 'thrift/transport/socket'
 require 'thrift/protocol/binary_protocol'
-require 'rhino/interface/hbase-thrift/gen/Hbase'
+require 'rhino/interface/hbase-thrift/gen/hbase'
 require 'rhino/interface/hbase-thrift/base'
 require 'rhino/interface/hbase-thrift/table'
 require 'rhino/interface/hbase-thrift/scanner'
