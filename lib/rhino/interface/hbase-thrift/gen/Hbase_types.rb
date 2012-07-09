@@ -4,128 +4,219 @@
 # DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
 #
 
-require 'thrift/protocol/tprotocol'
-
 module Apache
   module Hadoop
     module Hbase
       module Thrift
+                # TCell - Used to transport a cell value (byte[]) and the timestamp it was
+                # stored with together as a result for get and getRow methods. This promotes
+                # the timestamp of a cell to a first-class value, making it easy to take
+                # note of temporal data. Cell is used all the way from HStore up to HTable.
                 class TCell
-                  include ThriftStruct
-                  attr_accessor :value, :timestamp
+                  include ::Thrift::Struct, ::Thrift::Struct_Union
+                  VALUE = 1
+                  TIMESTAMP = 2
+
                   FIELDS = {
-                    1 => {:type => TType::STRING, :name => 'value'},
-                    2 => {:type => TType::I64, :name => 'timestamp'}
+                    VALUE => {:type => ::Thrift::Types::STRING, :name => 'value', :binary => true},
+                    TIMESTAMP => {:type => ::Thrift::Types::I64, :name => 'timestamp'}
                   }
+
+                  def struct_fields; FIELDS; end
+
+                  def validate
+                  end
+
+                  ::Thrift::Struct.generate_accessors self
                 end
 
+                # An HColumnDescriptor contains information about a column family
+                # such as the number of versions, compression settings, etc. It is
+                # used as input when creating a table or adding a column.
                 class ColumnDescriptor
-                  include ThriftStruct
-                  attr_accessor :name, :maxVersions, :compression, :inMemory, :maxValueLength, :bloomFilterType, :bloomFilterVectorSize, :bloomFilterNbHashes, :blockCacheEnabled, :timeToLive
+                  include ::Thrift::Struct, ::Thrift::Struct_Union
+                  NAME = 1
+                  MAXVERSIONS = 2
+                  COMPRESSION = 3
+                  INMEMORY = 4
+                  BLOOMFILTERTYPE = 5
+                  BLOOMFILTERVECTORSIZE = 6
+                  BLOOMFILTERNBHASHES = 7
+                  BLOCKCACHEENABLED = 8
+                  TIMETOLIVE = 9
+
                   FIELDS = {
-                    1 => {:type => TType::STRING, :name => 'name'},
-                    2 => {:type => TType::I32, :name => 'maxVersions', :default => 3},
-                    3 => {:type => TType::STRING, :name => 'compression', :default => 'NONE'},
-                    4 => {:type => TType::BOOL, :name => 'inMemory', :default => false},
-                    5 => {:type => TType::I32, :name => 'maxValueLength', :default => 2147483647},
-                    6 => {:type => TType::STRING, :name => 'bloomFilterType', :default => 'NONE'},
-                    7 => {:type => TType::I32, :name => 'bloomFilterVectorSize', :default => 0},
-                    8 => {:type => TType::I32, :name => 'bloomFilterNbHashes', :default => 0},
-                    9 => {:type => TType::BOOL, :name => 'blockCacheEnabled', :default => false},
-                    10 => {:type => TType::I32, :name => 'timeToLive', :default => -1}
+                    NAME => {:type => ::Thrift::Types::STRING, :name => 'name', :binary => true},
+                    MAXVERSIONS => {:type => ::Thrift::Types::I32, :name => 'maxVersions', :default => 3},
+                    COMPRESSION => {:type => ::Thrift::Types::STRING, :name => 'compression', :default => %q"NONE"},
+                    INMEMORY => {:type => ::Thrift::Types::BOOL, :name => 'inMemory', :default => false},
+                    BLOOMFILTERTYPE => {:type => ::Thrift::Types::STRING, :name => 'bloomFilterType', :default => %q"NONE"},
+                    BLOOMFILTERVECTORSIZE => {:type => ::Thrift::Types::I32, :name => 'bloomFilterVectorSize', :default => 0},
+                    BLOOMFILTERNBHASHES => {:type => ::Thrift::Types::I32, :name => 'bloomFilterNbHashes', :default => 0},
+                    BLOCKCACHEENABLED => {:type => ::Thrift::Types::BOOL, :name => 'blockCacheEnabled', :default => false},
+                    TIMETOLIVE => {:type => ::Thrift::Types::I32, :name => 'timeToLive', :default => -1}
                   }
+
+                  def struct_fields; FIELDS; end
+
+                  def validate
+                  end
+
+                  ::Thrift::Struct.generate_accessors self
                 end
 
+                # A TRegionInfo contains information about an HTable region.
                 class TRegionInfo
-                  include ThriftStruct
-                  attr_accessor :startKey, :endKey, :id, :name, :version
+                  include ::Thrift::Struct, ::Thrift::Struct_Union
+                  STARTKEY = 1
+                  ENDKEY = 2
+                  ID = 3
+                  NAME = 4
+                  VERSION = 5
+
                   FIELDS = {
-                    1 => {:type => TType::STRING, :name => 'startKey'},
-                    2 => {:type => TType::STRING, :name => 'endKey'},
-                    3 => {:type => TType::I64, :name => 'id'},
-                    4 => {:type => TType::STRING, :name => 'name'},
-                    5 => {:type => TType::BYTE, :name => 'version'}
+                    STARTKEY => {:type => ::Thrift::Types::STRING, :name => 'startKey', :binary => true},
+                    ENDKEY => {:type => ::Thrift::Types::STRING, :name => 'endKey', :binary => true},
+                    ID => {:type => ::Thrift::Types::I64, :name => 'id'},
+                    NAME => {:type => ::Thrift::Types::STRING, :name => 'name', :binary => true},
+                    VERSION => {:type => ::Thrift::Types::BYTE, :name => 'version'}
                   }
+
+                  def struct_fields; FIELDS; end
+
+                  def validate
+                  end
+
+                  ::Thrift::Struct.generate_accessors self
                 end
 
+                # A Mutation object is used to either update or delete a column-value.
                 class Mutation
-                  include ThriftStruct
-                  attr_accessor :isDelete, :column, :value
+                  include ::Thrift::Struct, ::Thrift::Struct_Union
+                  ISDELETE = 1
+                  COLUMN = 2
+                  VALUE = 3
+
                   FIELDS = {
-                    1 => {:type => TType::BOOL, :name => 'isDelete', :default => false},
-                    2 => {:type => TType::STRING, :name => 'column'},
-                    3 => {:type => TType::STRING, :name => 'value'}
+                    ISDELETE => {:type => ::Thrift::Types::BOOL, :name => 'isDelete', :default => false},
+                    COLUMN => {:type => ::Thrift::Types::STRING, :name => 'column', :binary => true},
+                    VALUE => {:type => ::Thrift::Types::STRING, :name => 'value', :binary => true}
                   }
+
+                  def struct_fields; FIELDS; end
+
+                  def validate
+                  end
+
+                  ::Thrift::Struct.generate_accessors self
                 end
 
+                # A BatchMutation object is used to apply a number of Mutations to a single row.
                 class BatchMutation
-                  include ThriftStruct
-                  attr_accessor :row, :mutations
+                  include ::Thrift::Struct, ::Thrift::Struct_Union
+                  ROW = 1
+                  MUTATIONS = 2
+
                   FIELDS = {
-                    1 => {:type => TType::STRING, :name => 'row'},
-                    2 => {:type => TType::LIST, :name => 'mutations', :element => {:type => TType::STRUCT, :class => Mutation}}
+                    ROW => {:type => ::Thrift::Types::STRING, :name => 'row', :binary => true},
+                    MUTATIONS => {:type => ::Thrift::Types::LIST, :name => 'mutations', :element => {:type => ::Thrift::Types::STRUCT, :class => Apache::Hadoop::Hbase::Thrift::Mutation}}
                   }
+
+                  def struct_fields; FIELDS; end
+
+                  def validate
+                  end
+
+                  ::Thrift::Struct.generate_accessors self
                 end
 
+                # Holds row name and then a map of columns to cells.
                 class TRowResult
-                  include ThriftStruct
-                  attr_accessor :row, :columns
+                  include ::Thrift::Struct, ::Thrift::Struct_Union
+                  ROW = 1
+                  COLUMNS = 2
+
                   FIELDS = {
-                    1 => {:type => TType::STRING, :name => 'row'},
-                    2 => {:type => TType::MAP, :name => 'columns', :key => {:type => TType::STRING}, :value => {:type => TType::STRUCT, :class => TCell}}
+                    ROW => {:type => ::Thrift::Types::STRING, :name => 'row', :binary => true},
+                    COLUMNS => {:type => ::Thrift::Types::MAP, :name => 'columns', :key => {:type => ::Thrift::Types::STRING, :binary => true}, :value => {:type => ::Thrift::Types::STRUCT, :class => Apache::Hadoop::Hbase::Thrift::TCell}}
                   }
+
+                  def struct_fields; FIELDS; end
+
+                  def validate
+                  end
+
+                  ::Thrift::Struct.generate_accessors self
                 end
 
-                class IOError < StandardError
-                  include ThriftStruct
+                # An IOError exception signals that an error occurred communicating
+                # to the Hbase master or an Hbase region server.  Also used to return
+                # more general Hbase error conditions.
+                class IOError < ::Thrift::Exception
+                  include ::Thrift::Struct, ::Thrift::Struct_Union
                   def initialize(message=nil)
                     super()
                     self.message = message
                   end
 
-                  attr_accessor :message
+                  MESSAGE = 1
+
                   FIELDS = {
-                    1 => {:type => TType::STRING, :name => 'message'}
+                    MESSAGE => {:type => ::Thrift::Types::STRING, :name => 'message'}
                   }
+
+                  def struct_fields; FIELDS; end
+
+                  def validate
+                  end
+
+                  ::Thrift::Struct.generate_accessors self
                 end
 
-                class IllegalArgument < StandardError
-                  include ThriftStruct
+                # An IllegalArgument exception indicates an illegal or invalid
+                # argument was passed into a procedure.
+                class IllegalArgument < ::Thrift::Exception
+                  include ::Thrift::Struct, ::Thrift::Struct_Union
                   def initialize(message=nil)
                     super()
                     self.message = message
                   end
 
-                  attr_accessor :message
+                  MESSAGE = 1
+
                   FIELDS = {
-                    1 => {:type => TType::STRING, :name => 'message'}
+                    MESSAGE => {:type => ::Thrift::Types::STRING, :name => 'message'}
                   }
+
+                  def struct_fields; FIELDS; end
+
+                  def validate
+                  end
+
+                  ::Thrift::Struct.generate_accessors self
                 end
 
-                class NotFound < StandardError
-                  include ThriftStruct
+                # An AlreadyExists exceptions signals that a table with the specified
+                # name already exists
+                class AlreadyExists < ::Thrift::Exception
+                  include ::Thrift::Struct, ::Thrift::Struct_Union
                   def initialize(message=nil)
                     super()
                     self.message = message
                   end
 
-                  attr_accessor :message
-                  FIELDS = {
-                    1 => {:type => TType::STRING, :name => 'message'}
-                  }
-                end
+                  MESSAGE = 1
 
-                class AlreadyExists < StandardError
-                  include ThriftStruct
-                  def initialize(message=nil)
-                    super()
-                    self.message = message
+                  FIELDS = {
+                    MESSAGE => {:type => ::Thrift::Types::STRING, :name => 'message'}
+                  }
+
+                  def struct_fields; FIELDS; end
+
+                  def validate
                   end
 
-                  attr_accessor :message
-                  FIELDS = {
-                    1 => {:type => TType::STRING, :name => 'message'}
-                  }
+                  ::Thrift::Struct.generate_accessors self
                 end
 
               end

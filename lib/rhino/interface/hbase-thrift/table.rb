@@ -7,6 +7,9 @@ module Rhino
         @hbase = hbase
         @table_name = table_name
         @opts = opts
+        if opts.has_key? :create_table and opts[:create_table]
+          hbase.createTable self.table_name, self.column_families
+        end
       end
       
       def column_families
@@ -44,6 +47,10 @@ module Rhino
 
       end
       
+      def create column_families
+        hbase.createTable @table_name, column_families
+      end
+      
       def scan(opts={})
         Rhino::HBaseThriftInterface::Scanner.new(self, opts)
       end
@@ -77,9 +84,7 @@ module Rhino
       
       # Deletes all of the rows in a table.
       def delete_all_rows
-        scan.each do |row|
-          delete_row(row['key'])
-        end
+        scan.each { |row| delete_row(row['key']) }
       end
       
       # Takes a Apache::Hadoop::Hbase::Thrift::TRowResult instance and returns a hash like:

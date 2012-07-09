@@ -1,3 +1,5 @@
+require 'thrift'
+
 module Rhino
   module HBaseThriftInterface
     class Base < Rhino::Interface::Base
@@ -12,8 +14,8 @@ module Rhino
       end
       
       def connect
-        transport = TBufferedTransport.new(TSocket.new(host, port))
-        protocol = TBinaryProtocol.new(transport)
+        transport = ::Thrift::BufferedTransport.new(TSocket.new(host, port))
+        protocol = ::Thrift::BinaryProtocol.new(transport)
         @client = Apache::Hadoop::Hbase::Thrift::Hbase::Client.new(protocol)
         transport.open()
       end
@@ -21,8 +23,8 @@ module Rhino
       def connect
         count = 1
         while @client == nil and count < THRIFT_RETRY_COUNT
-          transport = TBufferedTransport.new(TSocket.new(host, port))
-          protocol = TBinaryProtocol.new(transport)
+          transport = ::Thrift::BufferedTransport.new(::Thrift::Socket.new(host, port))
+          protocol = ::Thrift::BinaryProtocol.new(transport)
           @client = Apache::Hadoop::Hbase::Thrift::Hbase::Client.new(protocol)
           begin
             transport.open()
@@ -41,16 +43,16 @@ module Rhino
       def table_names
         client.getTableNames()
       end
-
+      
       def method_missing(method, *args)
         debug("#{self.class.name}#method_missing(#{method.inspect}, #{args.inspect})")
         begin
           connect() if not @client
-          client.send(method, *args) if @client
-        rescue Thrift::TransportException
+          @client.send(method, *args) if @client
+        rescue Thrift::TransportException => te
           @client = nil
           connect()
-          client.send(method, *args) if @client
+          @client.send(method, *args) if @client
         end
       end
     end

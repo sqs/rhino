@@ -4,13 +4,10 @@
 # DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
 #
 
-require 'thrift/protocol/tprotocol'
-require 'Hbase_types'
-
-        module Apache
-          module Hadoop
-            module Hbase
-              module Thrift
+module Apache
+  module Hadoop
+    module Hbase
+      module Thrift
       end
     end
   end
