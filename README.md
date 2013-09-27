@@ -2,6 +2,8 @@
 
 Rhino is a Ruby object-relational mapping (ORM) for HBase[http://www.hbase.org].
 
+[![Views in the last 24 hours](https://sourcegraph.com/api/repos/github.com/sqs/rhino/counters/views-24h.png)](https://sourcegraph.com/github.com/sqs/rhino)
+
 ### Support & contact
 
 Author: Quinn Slack qslack@qslack.com[mailto:qslack@qslack.com]
